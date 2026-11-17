@@ -89,6 +89,20 @@
 				letter-spacing: -0.06em;
 				margin: 10px 0 8px;
 				white-space: pre-line;
+				text-align: center;
+			}
+			.hero h1.on-photo {
+				display: block;
+				width: 100%;
+				max-width: 100%;
+				padding: 11px 16px;
+				border: 1px solid #ffffffcc;
+				border-radius: 15px;
+				background: rgba(255, 254, 250, 0.82);
+				box-shadow: 0 5px 22px #20241f1c;
+				backdrop-filter: blur(7px);
+				-webkit-backdrop-filter: blur(7px);
+				color: #171b17;
 			}
 			.hero p {
 				color: var(--muted);
@@ -100,12 +114,15 @@
 				min-height: 610px;
 				border: 1px solid #e8e5dc;
 				border-radius: 22px;
-				background: rgba(241, 239, 232, 0.88);
+				background: rgba(241, 239, 232, 0.84);
 				position: relative;
 				overflow: hidden;
 				display: flex;
 				align-items: center;
 				justify-content: center;
+			}
+			.machine-stage.no-photo {
+				background: rgba(249, 245, 225, 0.84);
 			}
 			.stage-label {
 				position: absolute;
@@ -1217,7 +1234,7 @@
 				<section class="main-col">
 					<div class="hero">
 						<div class="eyebrow">YOUR PERSONAL GACHA</div>
-						<h1 id="pageTitle">ZEKAMONGO!<br />GATCHA!</h1>
+						<h1 id="pageTitle">ZEKAMONGO!</h1>
 					</div>
 					<div class="machine-stage">
 						<div class="stage-label">GACHA MACHINE · NO. 01</div>
@@ -1311,7 +1328,7 @@
 				</div>
 				<div class="settings-tab-panel" id="pageTab" role="tabpanel" aria-labelledby="pageTabButton">
 					<label class="page-setting-label" for="pageTitleInput">페이지 제목</label>
-					<textarea class="page-title-input" id="pageTitleInput" maxlength="80" placeholder="예: ZEKAMONGO!&#10;GATCHA!"></textarea>
+					<textarea class="page-title-input" id="pageTitleInput" maxlength="80" placeholder="예: 행사 제목"></textarea>
 					<p class="settings-note">줄을 바꾸면 제목에도 줄바꿈이 적용됩니다.</p>
 					<div class="page-setting-section">
 						<span class="page-setting-label">배경 색상 팔레트</span>
@@ -1469,9 +1486,11 @@
 				const storedPageSettings = JSON.parse(localStorage.getItem("gachaStudioPageSettings"));
 				if (storedPageSettings) pageSettings = { ...pageSettings, ...storedPageSettings };
 			} catch {}
-			if (!pageSettings.title) pageSettings.title = $("#pageTitle").innerText || "ZEKAMONGO!\nGATCHA!";
+			if (!pageSettings.title) pageSettings.title = $("#pageTitle").innerText || "ZEKAMONGO!";
 			function applyPageSettings() {
-				$("#pageTitle").textContent = pageSettings.title;
+				const title = $("#pageTitle");
+				title.textContent = pageSettings.title;
+				title.classList.toggle("on-photo", Boolean(pageSettings.backgroundImage));
 				$("#pageTitleInput").value = pageSettings.title;
 				document.documentElement.style.setProperty("--paper", pageSettings.backgroundColor);
 				const background = $("#pageBackground");
@@ -1479,6 +1498,7 @@
 					? `url("${pageSettings.backgroundImage}")`
 					: "none";
 				background.classList.toggle("blurred", Boolean(pageSettings.blurBackground));
+				$(".machine-stage").classList.toggle("no-photo", !pageSettings.backgroundImage);
 				$("#backgroundBlur").checked = Boolean(pageSettings.blurBackground);
 				$("#backgroundBlur").disabled = !pageSettings.backgroundImage;
 				const preview = $("#backgroundPreview");
@@ -1774,7 +1794,9 @@
 			});
 			$("#pageTitleInput").addEventListener("input", (event) => {
 				pageSettings.title = event.target.value;
-				$("#pageTitle").textContent = pageSettings.title;
+				const title = $("#pageTitle");
+				title.textContent = pageSettings.title;
+				title.classList.toggle("on-photo", Boolean(pageSettings.backgroundImage));
 				savePageSettings();
 			});
 			document.querySelectorAll(".palette-choice").forEach((button) => {
