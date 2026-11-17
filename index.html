@@ -1,0 +1,1674 @@
+<!doctype html>
+<html lang="ko">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<meta name="theme-color" content="#f7f5ef" />
+		<title>오늘의 가챠</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Gowun+Dodum&display=swap"
+			rel="stylesheet"
+		/>
+		<style>
+			:root {
+				--paper: #f7f5ef;
+				--ink: #20241f;
+				--muted: #878a80;
+				--line: #e9e6dd;
+				--green: #b9d94a;
+				--deep: #27342c;
+				--white: #fffefa;
+			}
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				margin: 0;
+				background: var(--paper);
+				color: var(--ink);
+				font-family: "DM Sans", "Gowun Dodum", sans-serif;
+				min-height: 100vh;
+			}
+			button,
+			input {
+				font: inherit;
+			}
+			button {
+				cursor: pointer;
+				-webkit-tap-highlight-color: transparent;
+			}
+			.no-script-note {
+				max-width: 920px;
+				margin: 12px auto;
+				padding: 12px 15px;
+				border: 1px solid #ead9bd;
+				border-radius: 12px;
+				background: #fff8e8;
+				color: #66583e;
+				font-size: 13px;
+				line-height: 1.6;
+			}
+			.app {
+				max-width: 1240px;
+				margin: auto;
+				padding: 24px 34px 44px;
+			}
+			.layout {
+				display: block;
+				max-width: 920px;
+				margin: auto;
+			}
+			.eyebrow {
+				font-size: 11px;
+				font-weight: 700;
+				letter-spacing: 0.13em;
+				color: #8d9185;
+				text-transform: uppercase;
+			}
+			.hero h1 {
+				font-family: "Gowun Dodum", sans-serif;
+				font-size: 35px;
+				line-height: 1.32;
+				letter-spacing: -0.06em;
+				margin: 10px 0 8px;
+			}
+			.hero p {
+				color: var(--muted);
+				font-size: 13px;
+				margin: 0;
+			}
+			.machine-stage {
+				margin-top: 18px;
+				min-height: 610px;
+				border: 1px solid #e8e5dc;
+				border-radius: 22px;
+				background: #f1efe8;
+				position: relative;
+				overflow: hidden;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			.stage-label {
+				position: absolute;
+				left: 22px;
+				top: 20px;
+				font-size: 10px;
+				letter-spacing: 0.12em;
+				color: #a4a399;
+				font-weight: 700;
+			}
+			.soldout-message {
+				position: absolute;
+				z-index: 8;
+				top: 52px;
+				left: 50%;
+				transform: translate(-50%, -6px);
+				padding: 9px 15px;
+				border: 1px solid #ffffff9c;
+				border-radius: 999px;
+				background: #27342ceF;
+				color: #fff;
+				font-family: 'Gowun Dodum', sans-serif;
+				font-size: 12px;
+				box-shadow: 0 5px 18px #27342c24;
+				opacity: 0;
+				visibility: hidden;
+				transition: opacity .2s, transform .2s, visibility .2s;
+			}
+			.soldout-message.visible {
+				opacity: 1;
+				visibility: visible;
+				transform: translate(-50%, 0);
+			}
+			.machine {
+				width: 326px;
+				height: 372px;
+				position: relative;
+				transform: scale(1.18) translateY(-18px);
+				filter: drop-shadow(0 18px 13px #3440331c);
+				animation: float 4s ease-in-out infinite;
+			}
+			.machine-body {
+				position: absolute;
+				left: 27px;
+				right: 27px;
+				top: 20px;
+				height: 276px;
+				background: #d3e978;
+				border: 5px solid #29372d;
+				border-radius: 23px 23px 18px 18px;
+				z-index: 2;
+				overflow: hidden;
+			}
+			.machine-body:before {
+				content: "";
+				position: absolute;
+				left: 0;
+				right: 0;
+				top: 0;
+				height: 46px;
+				background: #c3df5d;
+				border-bottom: 4px solid #29372d;
+			}
+			.machine-window {
+				position: absolute;
+				left: 19px;
+				right: 19px;
+				top: 64px;
+				height: 157px;
+				border: 5px solid #29372d;
+				border-radius: 48% 48% 20px 20px/39% 39% 20px 20px;
+				background: #f4f5e9;
+				overflow: hidden;
+			}
+			.machine-window:before {
+				content: "";
+				position: absolute;
+				inset: 0;
+				background: linear-gradient(
+					133deg,
+					#fff9 0 13%,
+					transparent 13% 64%,
+					#fff5 65% 70%,
+					transparent 70%
+				);
+				z-index: 2;
+				pointer-events: none;
+			}
+			.window-label {
+				position: absolute;
+				z-index: 3;
+				top: 15px;
+				left: 0;
+				right: 0;
+				text-align: center;
+				font-size: 9px;
+				font-weight: 700;
+				letter-spacing: 0.2em;
+				color: #7a8b54;
+			}
+			.balls {
+				position: absolute;
+				inset: 32px 8px 8px;
+				display: flex;
+				align-items: end;
+				justify-content: center;
+				flex-wrap: wrap;
+				gap: 3px 1px;
+			}
+			.ball {
+				width: 45px;
+				height: 45px;
+				border-radius: 50%;
+				position: relative;
+				background: var(--c, #fd9d81);
+				border: 2px solid #30372c;
+				box-shadow: inset -5px -5px 0 #00000012;
+				flex: none;
+			}
+			.ball:before {
+				content: "";
+				position: absolute;
+				top: 49%;
+				left: 2px;
+				right: 2px;
+				border-top: 1.5px solid #30372c99;
+			}
+			.ball:after {
+				content: "";
+				position: absolute;
+				width: 7px;
+				height: 7px;
+				background: #ffffff8c;
+				border-radius: 50%;
+				left: 9px;
+				top: 7px;
+			}
+			.ball:nth-child(3n) {
+				transform: translateY(6px);
+			}
+			.ball:nth-child(4n) {
+				transform: translateY(-3px);
+			}
+			.top-cap {
+				position: absolute;
+				width: 158px;
+				height: 35px;
+				top: 0;
+				left: 84px;
+				background: #f8f4e8;
+				border: 5px solid #29372d;
+				border-radius: 50%;
+				z-index: 4;
+			}
+			.top-cap:after {
+				content: "";
+				position: absolute;
+				left: 22px;
+				right: 22px;
+				bottom: -5px;
+				border-top: 4px solid #29372d;
+			}
+			.control-panel {
+				position: absolute;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				height: 119px;
+				background: #f5a181;
+				border: 5px solid #29372d;
+				border-radius: 20px 20px 28px 28px;
+				z-index: 4;
+			}
+			.panel-name {
+				position: absolute;
+				left: 22px;
+				top: 14px;
+				color: #29372d;
+				font-size: 9px;
+				font-weight: 700;
+				letter-spacing: 0.15em;
+			}
+			.knob-ring {
+				position: absolute;
+				right: 30px;
+				top: 19px;
+				width: 68px;
+				height: 68px;
+				border-radius: 50%;
+				background: #f9cb8f;
+				border: 5px solid #29372d;
+				display: grid;
+				place-items: center;
+			}
+			.knob {
+				width: 39px;
+				height: 39px;
+				border-radius: 50%;
+				background: #fff5d9;
+				border: 4px solid #29372d;
+				position: relative;
+				transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+			}
+			.knob:after {
+				content: "";
+				position: absolute;
+				width: 5px;
+				height: 12px;
+				background: #29372d;
+				top: 0;
+				left: 13px;
+				border-radius: 5px;
+			}
+			.slot {
+				position: absolute;
+				left: 27px;
+				bottom: 18px;
+				width: 86px;
+				height: 25px;
+				border: 4px solid #29372d;
+				border-radius: 15px;
+				background: #fff5d9;
+			}
+			.slot-glow {
+				position: absolute;
+				left: 35px;
+				bottom: 22px;
+				width: 70px;
+				height: 5px;
+				background: #ffb89e;
+				border-radius: 5px;
+			}
+			.foot {
+				position: absolute;
+				bottom: 0;
+				left: 50px;
+				right: 50px;
+				height: 79px;
+				background: #b8cf5f;
+				border: 5px solid #29372d;
+				border-radius: 11px 11px 19px 19px;
+				z-index: 1;
+			}
+			.foot:after {
+				content: "";
+				position: absolute;
+				left: 12px;
+				right: 12px;
+				top: 19px;
+				border-top: 4px solid #29372d;
+			}
+			.tray {
+				position: absolute;
+				bottom: 15px;
+				left: 91px;
+				width: 144px;
+				height: 50px;
+				background: #eae6d8;
+				border: 5px solid #29372d;
+				border-radius: 13px;
+				z-index: 3;
+			}
+			.tray:after {
+				content: "";
+				position: absolute;
+				left: 18px;
+				right: 18px;
+				top: 18px;
+				height: 19px;
+				border-radius: 50%;
+				background: #d5d0c1;
+			}
+			.dispensed {
+				position: absolute;
+				z-index: 7;
+				left: 50%;
+				bottom: 56px;
+				transform: translate(-50%, 30px) scale(0.4);
+				opacity: 0;
+				transition: 0.36s cubic-bezier(0.2, 0.8, 0.2, 1);
+			}
+			.dispensed.show {
+				opacity: 1;
+				transform: translate(-50%, 0) scale(1);
+			}
+			.dispensed .ball {
+				width: 62px;
+				height: 62px;
+				animation: pop 0.48s cubic-bezier(0.2, 0.8, 0.2, 1);
+			}
+			@keyframes pop {
+				0% {
+					transform: translateY(-95px) rotate(-130deg) scale(0.5);
+				}
+				70% {
+					transform: translateY(9px) rotate(20deg) scale(1.07);
+				}
+				100% {
+					transform: translateY(0) rotate(0) scale(1);
+				}
+			}
+			@keyframes float {
+				50% {
+					translate: 0 -5px;
+				}
+			}
+			.stage-bottom {
+				position: absolute;
+				bottom: 18px;
+				left: 21px;
+				right: auto;
+				display: flex;
+				gap: 18px;
+				color: #a1a094;
+				font-size: 10px;
+				letter-spacing: 0.06em;
+			}
+			.draw-controls {
+				position: absolute;
+				z-index: 10;
+				left: 50%;
+				bottom: 48px;
+				width: min(410px, calc(100% - 150px));
+				padding: 0;
+				border: 0;
+				background: transparent;
+				transform: translateX(-50%);
+				text-align: center;
+			}
+			.draw-stepper {
+				display: grid;
+				grid-template-columns: 58px minmax(0, 1fr) 58px;
+				align-items: center;
+				gap: 11px;
+				padding: 0;
+			}
+			.step-btn {
+				display: grid;
+				place-items: center;
+				width: 58px;
+				height: 58px;
+				border: 1px solid #ffffffb8;
+				border-radius: 50%;
+				background: #fffefaf2;
+				color: var(--deep);
+				box-shadow: 0 5px 16px #27342c20;
+				transition: transform .15s, background .15s;
+			}
+			.step-btn:hover:not(:disabled) {
+				transform: translateY(-1px);
+				background: #f8f8ef;
+			}
+			.step-btn:disabled {
+				opacity: .4;
+				cursor: not-allowed;
+			}
+			.step-btn svg {
+				width: 21px;
+				height: 21px;
+			}
+			.draw-btn {
+				width: 100%;
+				min-width: 0;
+				height: 58px;
+				border: 0;
+				border-radius: 16px;
+				background: var(--green);
+				color: #27342c;
+				font-size: 16px;
+				font-weight: 700;
+				letter-spacing: .01em;
+				transition: transform .15s, background .15s;
+			}
+			.draw-btn:hover:not(:disabled) {
+				transform: translateY(-1px);
+				background: #cae965;
+			}
+			.draw-btn:disabled {
+				opacity: .58;
+				cursor: not-allowed;
+			}
+			.draw-controls .remaining {
+				margin-top: 10px;
+				color: #8e9085;
+				font-size: 11px;
+			}
+			#drawCount { display: none; }
+			.machine-stage .history-view-btn {
+				position: absolute;
+				z-index: 9;
+				right: 17px;
+				bottom: 12px;
+				margin: 0;
+				border: 1px solid #e4e1d8;
+				background: #fffefa;
+				box-shadow: 0 3px 10px #27342c0b;
+			}
+			.draw-result-backdrop {
+				position: absolute;
+				inset: 0;
+				z-index: 12;
+				display: none;
+				align-items: center;
+				justify-content: center;
+				padding: 18px;
+				background: #27342c65;
+				backdrop-filter: blur(4px);
+			}
+			.draw-result-backdrop.open {
+				display: flex;
+				animation: fade 0.22s;
+			}
+			.draw-result-card {
+				width: min(400px, 100%);
+				max-height: calc(100% - 18px);
+				overflow: auto;
+				padding: 22px;
+				background: var(--white);
+				border: 1px solid #fff;
+				border-radius: 19px;
+				box-shadow: 0 15px 45px #1b271e35;
+				text-align: center;
+			}
+			.draw-result-card h2 {
+				font-family: "Gowun Dodum", sans-serif;
+				font-size: 20px;
+				margin: 0;
+			}
+			.draw-result-card p {
+				font-size: 11px;
+				color: #92948a;
+				margin: 6px 0 0;
+			}
+			.draw-result-grid {
+				display: grid;
+				grid-template-columns: repeat(4, 1fr);
+				gap: 9px;
+				margin: 17px 0;
+			}
+			.result-img {
+				aspect-ratio: 1;
+				border-radius: 11px;
+				background: #f3f1e9;
+				overflow: hidden;
+				display: grid;
+				place-items: center;
+				font-size: 24px;
+			}
+			.result-img img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+			.result-card {
+				text-align: center;
+				min-width: 0;
+			}
+			.draw-result-card .result-img {
+				max-width: 70px;
+				margin: auto;
+			}
+			.result-name {
+				font-family: "Gowun Dodum", sans-serif;
+				font-size: 10px;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				margin-top: 5px;
+			}
+			.confirm-btn {
+				width: 100%;
+				height: 42px;
+				border: 0;
+				border-radius: 10px;
+				background: var(--deep);
+				color: #fff;
+				font-weight: 600;
+				font-size: 12px;
+			}
+			.sidebar {
+				padding-top: 8px;
+			}
+			.settings-fab {
+				position: fixed;
+				z-index: 9;
+				right: 24px;
+				bottom: 18px;
+				bottom: calc(18px + env(safe-area-inset-bottom));
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				border: 1px solid #ffffff70;
+				border-radius: 999px;
+				padding: 12px 17px;
+				background: var(--deep);
+				color: #fff;
+				box-shadow: 0 8px 24px #27342c35;
+				font-size: 12px;
+				font-weight: 600;
+				transition: transform .18s, background .18s;
+			}
+			.settings-fab:hover {
+				transform: translateY(-2px);
+				background: #35463a;
+			}
+			.settings-overlay {
+				position: fixed;
+				inset: 0;
+				z-index: 10;
+				display: none;
+				align-items: center;
+				justify-content: center;
+				padding: 20px;
+				background: #1d261f66;
+				backdrop-filter: blur(4px);
+			}
+			.settings-overlay.open {
+				display: flex;
+				animation: fade .2s;
+			}
+			.settings-dialog {
+				width: min(520px, 100%);
+				max-height: min(760px, calc(100vh - 40px));
+				overflow: auto;
+				padding: 22px;
+				border: 1px solid var(--line);
+				border-radius: 20px;
+				background: var(--white);
+				box-shadow: 0 22px 70px #0002;
+			}
+			.settings-titlebar {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				margin-bottom: 16px;
+			}
+			.settings-titlebar h2 {
+				margin: 0;
+				font-size: 16px;
+			}
+			.settings-close {
+				width: 32px;
+				height: 32px;
+				border: 0;
+				border-radius: 50%;
+				background: #f0efe9;
+				color: #77796f;
+				font-size: 18px;
+			}
+			.panel {
+				background: var(--white);
+				border: 1px solid var(--line);
+				border-radius: 18px;
+				padding: 22px;
+				margin-bottom: 15px;
+			}
+			.panel-head {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+			}
+			.panel h2 {
+				font-size: 14px;
+				margin: 0;
+				letter-spacing: -0.03em;
+			}
+			.badge {
+				font-size: 10px;
+				color: #81847b;
+				background: #f1f0e9;
+				border-radius: 20px;
+				padding: 5px 8px;
+			}
+			.items {
+				margin-top: 15px;
+				display: grid;
+				gap: 8px;
+			}
+			.item {
+				display: flex;
+				align-items: center;
+				gap: 11px;
+				padding: 9px;
+				border: 1px solid #efede6;
+				border-radius: 12px;
+				min-width: 0;
+			}
+			.thumb {
+				width: 43px;
+				height: 43px;
+				border-radius: 10px;
+				background: #f2f0e8;
+				flex: none;
+				display: grid;
+				place-items: center;
+				overflow: hidden;
+				font-size: 21px;
+			}
+			.thumb img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+			.item-info {
+				min-width: 0;
+				flex: 1;
+			}
+			.item-name {
+				font-family: "Gowun Dodum", sans-serif;
+				font-size: 12px;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.item-count {
+				font-size: 10px;
+				color: #999b91;
+				margin-top: 4px;
+			}
+			.count-input {
+				width: 57px;
+				border: 1px solid #e8e6df;
+				background: #faf9f5;
+				border-radius: 8px;
+				padding: 7px 5px;
+				text-align: center;
+				font-size: 12px;
+				outline: none;
+			}
+			.count-input:focus,
+			.number-input:focus {
+				border-color: #a8c846;
+			}
+			.icon-btn {
+				border: 0;
+				background: none;
+				color: #a2a399;
+				font-size: 17px;
+				padding: 4px;
+			}
+			.add-btn {
+				width: 100%;
+				height: 39px;
+				background: transparent;
+				border: 1px dashed #d9d7cf;
+				color: #74776d;
+				border-radius: 10px;
+				font-size: 11px;
+				margin-top: 10px;
+			}
+			.draw-panel {
+				background: var(--deep);
+				color: #fff;
+				border: 0;
+				padding: 22px;
+			}
+			.draw-panel h2 {
+				color: #fff;
+			}
+			.draw-sub {
+				color: #abb3aa;
+				font-size: 11px;
+				margin: 7px 0 17px;
+			}
+			.draw-row {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+			}
+			.number-input {
+				width: 92px;
+				padding: 12px;
+				border-radius: 10px;
+				border: 1px solid #566158;
+				background: #344239;
+				color: #fff;
+				outline: none;
+				font-size: 14px;
+			}
+			.draw-btn {
+				flex: 1;
+				border: 0;
+				background: var(--green);
+				height: 44px;
+				border-radius: 10px;
+				color: #27342c;
+				font-weight: 700;
+				font-size: 13px;
+			}
+			.draw-btn:disabled {
+				opacity: 0.55;
+				cursor: not-allowed;
+			}
+			.draw-controls .draw-btn {
+				flex: initial;
+				width: 100%;
+				height: 58px;
+				border-radius: 999px;
+				font-size: 16px;
+				letter-spacing: .01em;
+				box-shadow: 0 6px 18px #27342c24;
+			}
+			.draw-controls .remaining {
+				margin-top: 10px;
+				color: #8e9085;
+				font-size: 11px;
+			}
+			.remaining {
+				font-size: 10px;
+				color: #aab2a8;
+				margin-top: 12px;
+			}
+			.history-view-btn {
+				border: 0;
+				border-radius: 8px;
+				padding: 7px 10px;
+				background: #f0efe9;
+				color: #5c6255;
+				font-size: 10px;
+				margin-top: 12px;
+			}
+			.result {
+				margin-top: 14px;
+				border: 1px solid var(--line);
+				border-radius: 18px;
+				background: var(--white);
+				padding: 19px;
+				display: none;
+				animation: fade 0.35s;
+			}
+			.result.visible {
+				display: block;
+			}
+			@keyframes fade {
+				from {
+					opacity: 0;
+					transform: translateY(7px);
+				}
+				to {
+					opacity: 1;
+					transform: none;
+				}
+			}
+			.result-title {
+				font-size: 13px;
+				font-weight: 700;
+			}
+			.history-head {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			.history-total {
+				font-size: 10px;
+				color: #93958b;
+			}
+			.history-actions {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+			}
+			.history-clear-btn {
+				border: 1px solid #e9e6dd;
+				border-radius: 8px;
+				padding: 6px 9px;
+				background: transparent;
+				color: #8c6258;
+				font-size: 10px;
+			}
+			.history-clear-btn:hover:not(:disabled) {
+				background: #fbefeb;
+				border-color: #e8cfc8;
+			}
+			.history-clear-btn:disabled {
+				opacity: 0.45;
+				cursor: not-allowed;
+			}
+			.history-round {
+				padding: 13px 0;
+				border-bottom: 1px solid #efede6;
+			}
+			.history-round:last-child {
+				border-bottom: 0;
+				padding-bottom: 0;
+			}
+			.history-round-head {
+				display: flex;
+				justify-content: space-between;
+				font-size: 10px;
+				color: #8b8d83;
+				margin-bottom: 9px;
+			}
+			.history-chips {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 6px;
+			}
+			.history-chip {
+				display: flex;
+				align-items: center;
+				gap: 5px;
+				border-radius: 20px;
+				background: #f2f1eb;
+				padding: 4px 8px 4px 4px;
+				font-size: 10px;
+				color: #52564e;
+			}
+			.history-chip img {
+				width: 19px;
+				height: 19px;
+				object-fit: cover;
+				border-radius: 50%;
+			}
+			.chip-emoji {
+				font-size: 14px;
+			}
+			.history-empty {
+				padding: 19px 5px;
+				text-align: center;
+				color: #aaa99e;
+				font-size: 11px;
+				line-height: 1.7;
+			}
+			.hint {
+				display: flex;
+				gap: 10px;
+				align-items: flex-start;
+				background: #eeede5;
+				border-radius: 12px;
+				padding: 12px 14px;
+				color: #77796e;
+				font-size: 10px;
+				line-height: 1.6;
+			}
+			.toast {
+				position: fixed;
+				left: 50%;
+				bottom: 25px;
+				transform: translate(-50%, 15px);
+				background: #253129;
+				color: #fff;
+				border-radius: 30px;
+				padding: 11px 17px;
+				font-size: 11px;
+				opacity: 0;
+				pointer-events: none;
+				transition: 0.25s;
+				z-index: 20;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translate(-50%, 0);
+			}
+			.modal-backdrop {
+				position: fixed;
+				inset: 0;
+				background: #1d261f66;
+				display: none;
+				align-items: center;
+				justify-content: center;
+				padding: 20px;
+				z-index: 20;
+				backdrop-filter: blur(3px);
+			}
+			.modal-backdrop.open {
+				display: flex;
+			}
+			.modal {
+				width: min(420px, 100%);
+				background: var(--white);
+				border-radius: 20px;
+				padding: 24px;
+				box-shadow: 0 20px 70px #0002;
+			}
+			.modal h2 {
+				font-size: 17px;
+				margin: 0 0 18px;
+			}
+			.field {
+				display: block;
+				font-size: 11px;
+				color: #77796f;
+				margin: 0 0 7px;
+			}
+			.text-input {
+				width: 100%;
+				border: 1px solid #e6e4dc;
+				background: #faf9f5;
+				border-radius: 10px;
+				padding: 11px 12px;
+				font-size: 12px;
+				outline: none;
+				margin-bottom: 15px;
+			}
+			.upload {
+				height: 90px;
+				border: 1px dashed #d9d7ce;
+				border-radius: 12px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 10px;
+				color: #8d8f84;
+				font-size: 11px;
+				cursor: pointer;
+				touch-action: manipulation;
+				margin-bottom: 18px;
+				overflow: hidden;
+			}
+			.upload img {
+				width: 72px;
+				height: 72px;
+				object-fit: cover;
+				border-radius: 9px;
+			}
+			.modal-actions {
+				display: flex;
+				justify-content: flex-end;
+				gap: 8px;
+			}
+			.secondary,
+			.primary {
+				border: 0;
+				border-radius: 9px;
+				padding: 10px 15px;
+				font-size: 11px;
+			}
+			.secondary {
+				background: #f0efe9;
+				color: #74766d;
+			}
+			.primary {
+				background: var(--deep);
+				color: #fff;
+			}
+			.file-input {
+				display: none;
+			}
+			.result.visible {
+				display: block;
+			}
+			@media (max-width: 850px) {
+				.machine-stage {
+					min-height: 580px;
+				}
+				.hero h1 {
+					font-size: 30px;
+				}
+				.app {
+					padding: 22px 20px 30px;
+				}
+			}
+			@media (pointer: coarse) {
+				button { touch-action: manipulation; }
+				.add-btn, .secondary, .primary,
+				.machine-stage .history-view-btn { min-height: 44px; }
+				.count-input { min-height: 44px; }
+				.upload { min-height: 108px; }
+				.settings-dialog {
+					max-height: calc(100vh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+				}
+			}
+			@media (max-width: 430px) {
+				.machine {
+					transform: scale(1.02) translateY(-12px);
+				}
+				.machine-stage {
+					min-height: 520px;
+				}
+				.draw-controls { width: calc(100% - 24px); bottom: 60px; padding: 0; }
+				.draw-stepper { grid-template-columns: 50px minmax(0, 1fr) 50px; gap: 8px; }
+				.step-btn { width: 50px; height: 52px; }
+				.draw-controls .draw-btn { height: 52px; font-size: 14px; }
+				.machine-stage .history-view-btn { right: 10px; bottom: 9px; }
+				.draw-result-card {
+					padding: 17px;
+				}
+				.panel {
+					padding: 18px;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<noscript><div class="no-script-note">이 미리보기에서는 버튼과 재고 계산이 작동하지 않아요. JavaScript가 실행되는 Safari에서 웹 주소로 열어주세요.</div></noscript>
+		<div class="app">
+			<main class="layout">
+				<section class="main-col">
+					<div class="hero">
+						<div class="eyebrow">YOUR PERSONAL GACHA</div>
+						<h1>ZEKAMONGO!<br />GATCHA!</h1>
+					</div>
+					<div class="machine-stage">
+						<div class="stage-label">GACHA MACHINE · NO. 01</div>
+						<div class="soldout-message" id="soldoutMessage" role="status">재고가 소진되었어요</div>
+						<div class="machine">
+							<div class="top-cap"></div>
+							<div class="machine-body">
+								<div class="machine-window">
+									<div class="window-label">LUCKY CAPSULES</div>
+					<div class="balls" id="balls">
+						<div class="ball" style="--c:#ffd486"></div>
+						<div class="ball" style="--c:#ffb1b9"></div>
+						<div class="ball" style="--c:#c9bafa"></div>
+						<div class="ball" style="--c:#f4cf82"></div>
+						<div class="ball" style="--c:#bfe0a1"></div>
+						<div class="ball" style="--c:#b9d6e9"></div>
+				</div>
+								</div>
+								<div class="control-panel">
+									<div class="panel-name">LUCKY<br />GACHA</div>
+									<div class="knob-ring">
+										<div class="knob" id="knob"></div>
+									</div>
+									<div class="slot"></div>
+									<div class="slot-glow"></div>
+								</div>
+							</div>
+							<div class="foot"></div>
+							<div class="tray"></div>
+							<div class="dispensed" id="dispensed">
+								<div class="ball"></div>
+							</div>
+						</div>
+						<div class="draw-controls">
+							<input id="drawCount" type="number" min="1" value="1" aria-label="뽑기 횟수" />
+							<div class="draw-stepper">
+								<button class="step-btn" id="decreaseCount" aria-label="뽑기 횟수 줄이기">
+									<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14 6-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+								</button>
+								<button class="draw-btn" id="drawBtn">1회 돌리기</button>
+								<button class="step-btn" id="increaseCount" aria-label="뽑기 횟수 늘리기">
+									<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m10 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+								</button>
+							</div>
+							<div class="remaining" id="remaining"></div>
+						</div>
+						<button class="history-view-btn" id="viewHistory">회차별 기록 닫기 ↑</button>
+						<div class="draw-result-backdrop" id="drawResult">
+							<div class="draw-result-card">
+								<h2>이번 가챠 결과 ✨</h2>
+								<p id="drawResultMeta"></p>
+								<div class="draw-result-grid" id="drawResultGrid"></div>
+								<button class="confirm-btn" id="confirmResult">확인</button>
+							</div>
+						</div>
+					</div>
+					<div class="result visible" id="historyPanel">
+						<div class="history-head">
+							<div class="result-title">지금까지 뽑은 결과 ✨</div>
+							<div class="history-actions">
+								<button class="history-clear-btn" id="clearHistory" disabled>
+									기록 초기화
+								</button>
+								<span class="history-total" id="historyTotal">0개</span>
+							</div>
+						</div>
+						<div id="historyContent" class="history-empty">
+							아직 뽑은 상품이 없어요.<br />첫 가챠를 돌려보세요!
+						</div>
+					</div>
+				</section>
+			</main>
+		</div>
+		<button class="settings-fab" id="openSettings" aria-label="상품 설정 열기"><span>⚙</span> 설정</button>
+		<div class="settings-overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+			<section class="settings-dialog">
+				<div class="settings-titlebar">
+					<h2 id="settingsTitle">상품 라인업 설정</h2>
+					<button class="settings-close" id="closeSettings" aria-label="설정 닫기">×</button>
+				</div>
+				<div class="panel" style="margin:0;padding:0;border:0">
+					<div class="panel-head"><h2>등록된 상품</h2><span class="badge" id="itemBadge">0 ITEMS</span></div>
+					<div class="items" id="items"></div>
+					<button class="add-btn" id="openModal">＋ &nbsp;새 상품 추가하기</button>
+				</div>
+			</section>
+		</div>
+		<div
+			class="modal-backdrop"
+			id="clearHistoryBackdrop"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="clearHistoryTitle"
+		>
+			<div class="modal">
+				<h2 id="clearHistoryTitle">회차별 기록을 초기화할까요?</h2>
+				<p
+					style="
+						font-size: 12px;
+						color: #878a80;
+						line-height: 1.6;
+						margin: -7px 0 20px;
+					"
+				>
+					저장된 모든 뽑기 기록이 삭제됩니다. 상품과 현재 재고는 유지됩니다.
+				</p>
+				<div class="modal-actions">
+					<button class="secondary" id="cancelClearHistory">취소</button>
+					<button
+						class="primary"
+						id="confirmClearHistory"
+						style="background: #a64e3f"
+					>
+						기록 초기화
+					</button>
+				</div>
+			</div>
+		</div>
+		<div class="modal-backdrop" id="modalBackdrop">
+			<div class="modal">
+				<h2>새 상품 추가하기</h2>
+				<label class="field" for="productName">상품 이름</label
+				><input
+					class="text-input"
+					id="productName"
+					maxlength="30"
+					placeholder="예: 행운의 고양이 키링"
+				/><label class="field" for="productStock">재고 수량</label
+				><input
+					class="text-input"
+					id="productStock"
+					type="number"
+					min="0"
+					value="10"
+				/><label class="field"
+					>상품 이미지 <span style="color: #aaa">(선택)</span></label
+				><label class="upload" id="uploadLabel" for="imageFile"
+					><span id="uploadContent"
+						>＋ &nbsp; 이미지를 선택하거나 여기에 놓아주세요</span
+					></label
+				><input
+					class="file-input"
+					id="imageFile"
+					type="file"
+					accept="image/*"
+				/>
+				<div class="modal-actions">
+					<button class="secondary" id="cancelModal">취소</button
+					><button class="primary" id="saveProduct">상품 추가</button>
+				</div>
+			</div>
+		</div>
+		<div class="toast" id="toast"></div>
+		<script>
+			const defaults = [
+				{
+					id: "a",
+					name: "행운의 고양이",
+					stock: 8,
+					emoji: "🐱",
+					color: "#ffd486",
+				},
+				{
+					id: "b",
+					name: "미니 꽃다발",
+					stock: 6,
+					emoji: "💐",
+					color: "#ffb1b9",
+				},
+				{
+					id: "c",
+					name: "반짝 별 키링",
+					stock: 10,
+					emoji: "⭐",
+					color: "#c9bafa",
+				},
+				{
+					id: "d",
+					name: "달콤한 푸딩",
+					stock: 5,
+					emoji: "🍮",
+					color: "#f4cf82",
+				},
+			];
+			const $ = (s) => document.querySelector(s),
+				palette = [
+					"#ff9b81",
+					"#b9d6e9",
+					"#d6cbff",
+					"#f8d17f",
+					"#bfe0a1",
+					"#f2b7ce",
+				];
+			let products = [],
+				history = [],
+				busy = false,
+				selectedImage = "",
+				toastTimer;
+			try {
+				products =
+					JSON.parse(localStorage.getItem("gachaStudioProducts")) || defaults;
+			} catch {
+				products = defaults;
+			}
+			try {
+				history = JSON.parse(localStorage.getItem("gachaStudioHistory")) || [];
+			} catch {
+				history = [];
+			}
+			function toast(message) {
+				const el = $("#toast");
+				el.textContent = message;
+				el.classList.add("show");
+				clearTimeout(toastTimer);
+				toastTimer = setTimeout(() => el.classList.remove("show"), 2400);
+			}
+			function saveProducts() {
+				try {
+					localStorage.setItem("gachaStudioProducts", JSON.stringify(products));
+				} catch {
+					toast("저장 공간이 부족해 상품 변경을 저장하지 못했어요.");
+				}
+			}
+			function saveHistory() {
+				try {
+					localStorage.setItem(
+						"gachaStudioHistory",
+						JSON.stringify(
+							history.map((r) => ({
+								at: r.at,
+								items: r.items.map(({ id, name, emoji, color }) => ({
+									id,
+									name,
+									emoji,
+									color,
+								})),
+							})),
+						),
+					);
+				} catch {
+					toast(
+						"기록은 표시했지만 브라우저 저장 공간이 부족해 저장하지 못했어요.",
+					);
+				}
+			}
+			function totalStock() {
+				return products.reduce(
+					(sum, p) => sum + Math.max(0, Number(p.stock) || 0),
+					0,
+				);
+			}
+			function updateStock() {
+				const n = totalStock(),
+					count = Math.floor(Number($("#drawCount").value)),
+					short = Number.isFinite(count) && count > n;
+				$("#remaining").textContent = `남은 캡슐 ${n}개`;
+				$("#soldoutMessage").classList.toggle("visible", n === 0);
+				$("#drawCount").max = Math.max(1, n);
+				$("#drawBtn").disabled = busy || short;
+				$("#drawBtn").textContent = busy
+					? "돌리는 중…"
+					: short
+						? "재고 부족"
+						: `${Math.max(1, count || 1)}회 돌리기`;
+				$("#decreaseCount").disabled = busy || count <= 1;
+				$("#increaseCount").disabled = busy || count >= n;
+			}
+			function render() {
+				const items = $("#items");
+				items.innerHTML = "";
+				products.forEach((p, i) => {
+					const row = document.createElement("div");
+					row.className = "item";
+					row.innerHTML = `<div class="thumb" style="background:${p.image ? "#f2f0e8" : p.color || palette[i % palette.length]}">${p.image ? `<img src="${p.image}" alt="">` : `<span>${p.emoji || "🎁"}</span>`}</div><div class="item-info"><div class="item-name"></div><div class="item-count">남은 재고</div></div><input class="count-input" type="number" min="0" aria-label="재고 수량"><button class="icon-btn" aria-label="상품 삭제">×</button>`;
+					row.querySelector(".item-name").textContent = p.name;
+					const input = row.querySelector(".count-input");
+					input.value = p.stock;
+					input.addEventListener("change", () => {
+						p.stock = Math.max(0, parseInt(input.value) || 0);
+						input.value = p.stock;
+						saveProducts();
+						updateStock();
+					});
+					row.querySelector(".icon-btn").addEventListener("click", () => {
+						products = products.filter((x) => x.id !== p.id);
+						saveProducts();
+						render();
+					});
+					items.append(row);
+				});
+				$("#itemBadge").textContent = `${products.length} ITEMS`;
+				const balls = $("#balls");
+				balls.innerHTML = "";
+				for (
+					let i = 0;
+					i < Math.min(14, Math.max(5, products.length * 3));
+					i++
+				) {
+					const b = document.createElement("div");
+					b.className = "ball";
+					b.style.setProperty(
+						"--c",
+						(products.length ? products[i % products.length].color : null) ||
+							palette[i % palette.length],
+					);
+					balls.append(b);
+				}
+				updateStock();
+			}
+			function addResultCard(container, p, qty) {
+				const card = document.createElement("div");
+				card.className = "result-card";
+				card.innerHTML = `<div class="result-img">${p.image ? `<img src="${p.image}" alt="">` : `<span>${p.emoji || "🎁"}</span>`}</div><div class="result-name"></div><div style="font-size:9px;color:#898b80;margin-top:2px">× ${qty}</div>`;
+				card.querySelector(".result-name").textContent = p.name;
+				container.append(card);
+			}
+			function showDrawResult(pulled) {
+				const counts = new Map();
+				pulled.forEach((p) => counts.set(p.id, (counts.get(p.id) || 0) + 1));
+				const grid = $("#drawResultGrid");
+				grid.innerHTML = "";
+				counts.forEach((qty, id) =>
+					addResultCard(
+						grid,
+						pulled.find((p) => p.id === id),
+						qty,
+					),
+				);
+				$("#drawResultMeta").textContent =
+					`총 ${pulled.length}회 · ${counts.size}종류의 상품`;
+				$("#drawResult").classList.add("open");
+			}
+			function renderHistory() {
+				const host = $("#historyContent");
+				host.innerHTML = "";
+				$("#historyTotal").textContent =
+					`${history.reduce((n, r) => n + r.items.length, 0)}개`;
+				$("#clearHistory").disabled = history.length === 0;
+				if (!history.length) {
+					host.className = "history-empty";
+					host.innerHTML = "아직 뽑은 상품이 없어요.<br>첫 가챠를 돌려보세요!";
+					return;
+				}
+				host.className = "";
+				[...history].reverse().forEach((round, index) => {
+					const row = document.createElement("div");
+					row.className = "history-round";
+					const head = document.createElement("div");
+					head.className = "history-round-head";
+					head.innerHTML = `<span>가챠 ${history.length - index}</span><span>${round.items.length}회 뽑기</span>`;
+					const chips = document.createElement("div");
+					chips.className = "history-chips";
+					const counts = new Map();
+					round.items.forEach((p) =>
+						counts.set(p.id, (counts.get(p.id) || 0) + 1),
+					);
+					counts.forEach((qty, id) => {
+						const stored = round.items.find((p) => p.id === id),
+							p = {
+								...stored,
+								image: stored.image || (products.find((x) => x.id === id) || {}).image,
+							};
+						const chip = document.createElement("span");
+						chip.className = "history-chip";
+						chip.innerHTML = `${p.image ? `<img src="${p.image}" alt="">` : `<span class="chip-emoji">${p.emoji || "🎁"}</span>`}<span></span><b>×${qty}</b>`;
+						chip.querySelector("span:not(.chip-emoji)").textContent = p.name;
+						chips.append(chip);
+					});
+					row.append(head, chips);
+					host.append(row);
+				});
+			}
+			async function draw() {
+				if (busy) return;
+				const count = Math.floor(Number($("#drawCount").value));
+				if (!Number.isFinite(count) || count < 1) {
+					toast("뽑기 횟수를 1 이상 입력해주세요.");
+					return;
+				}
+				if (count > totalStock()) {
+					updateStock();
+					return;
+				}
+				busy = true;
+				updateStock();
+				$("#knob").style.transform = "rotate(720deg)";
+				const disp = $("#dispensed"),
+					pulled = [];
+				try {
+					for (let i = 0; i < count; i++) {
+						await new Promise((resolve) => setTimeout(resolve, i ? 500 : 80));
+						const pool = products.filter((p) => p.stock > 0);
+						if (!pool.length) break;
+						let roll =
+								Math.random() * pool.reduce((sum, p) => sum + p.stock, 0),
+							picked = pool[0];
+						for (const p of pool) {
+							roll -= p.stock;
+							if (roll < 0) {
+								picked = p;
+								break;
+							}
+						}
+						picked.stock--;
+						pulled.push({ ...picked });
+						disp
+							.querySelector(".ball")
+							.style.setProperty("--c", picked.color || palette[0]);
+						disp.classList.remove("show");
+						void disp.offsetWidth;
+						disp.classList.add("show");
+						render();
+						saveProducts();
+					}
+					if (pulled.length) {
+						await new Promise((resolve) => setTimeout(resolve, 350));
+						history.push({ items: pulled, at: new Date().toISOString() });
+						renderHistory();
+						saveHistory();
+						showDrawResult(pulled);
+					}
+				} catch (error) {
+					console.error(error);
+					if (pulled.length) {
+						history.push({ items: pulled, at: new Date().toISOString() });
+						renderHistory();
+						saveHistory();
+						showDrawResult(pulled);
+					} else toast("뽑기를 마치지 못했어요. 다시 시도해주세요.");
+				} finally {
+					busy = false;
+					updateStock();
+					$("#knob").style.transform = "rotate(0deg)";
+				}
+			}
+			$("#drawBtn").addEventListener("click", draw);
+			$("#drawCount").addEventListener("input", updateStock);
+			$("#decreaseCount").addEventListener("click", () => {
+				$("#drawCount").value = Math.max(1, Number($("#drawCount").value) - 1);
+				updateStock();
+			});
+			$("#increaseCount").addEventListener("click", () => {
+				$("#drawCount").value = Math.min(totalStock(), Number($("#drawCount").value) + 1);
+				updateStock();
+			});
+			$("#confirmResult").addEventListener("click", () =>
+				$("#drawResult").classList.remove("open"),
+			);
+			$("#viewHistory").addEventListener("click", () => {
+				const panel = $("#historyPanel"),
+					open = !panel.classList.contains("visible");
+				panel.classList.toggle("visible", open);
+				$("#viewHistory").textContent = open
+					? "회차별 기록 닫기 ↑"
+					: "회차별 기록 보기 ↓";
+				if (open) panel.scrollIntoView({ behavior: "smooth", block: "center" });
+			});
+			const settingsOverlay = $("#settingsOverlay");
+			function closeSettings() {
+				settingsOverlay.classList.remove("open");
+				$("#openSettings").setAttribute("aria-expanded", "false");
+			}
+			$("#openSettings").addEventListener("click", () => {
+				settingsOverlay.classList.add("open");
+				$("#openSettings").setAttribute("aria-expanded", "true");
+			});
+			$("#closeSettings").addEventListener("click", closeSettings);
+			settingsOverlay.addEventListener("click", (event) => {
+				if (event.target === settingsOverlay) closeSettings();
+			});
+			const clearHistoryBackdrop = $("#clearHistoryBackdrop");
+			$("#clearHistory").addEventListener("click", () => {
+				if (history.length) clearHistoryBackdrop.classList.add("open");
+			});
+			$("#cancelClearHistory").addEventListener("click", () =>
+				clearHistoryBackdrop.classList.remove("open"),
+			);
+			clearHistoryBackdrop.addEventListener("click", (event) => {
+				if (event.target === clearHistoryBackdrop)
+					clearHistoryBackdrop.classList.remove("open");
+			});
+			$("#confirmClearHistory").addEventListener("click", () => {
+				history = [];
+				localStorage.removeItem("gachaStudioHistory");
+				renderHistory();
+				clearHistoryBackdrop.classList.remove("open");
+				toast("회차별 기록을 초기화했어요.");
+			});
+			const backdrop = $("#modalBackdrop");
+			function closeModal() {
+				backdrop.classList.remove("open");
+				$("#productName").value = "";
+				$("#productStock").value = 10;
+				selectedImage = "";
+				$("#uploadContent").textContent =
+					"＋  이미지를 선택하거나 여기에 놓아주세요";
+				$("#imageFile").value = "";
+			}
+			$("#openModal").addEventListener("click", () =>
+				backdrop.classList.add("open"),
+			);
+			$("#cancelModal").addEventListener("click", closeModal);
+			backdrop.addEventListener("click", (e) => {
+				if (e.target === backdrop) closeModal();
+			});
+			$("#imageFile").addEventListener("change", (e) => {
+				const file = e.target.files[0];
+				if (!file) return;
+				if (!file.type.startsWith("image/")) {
+					toast("이미지 파일을 선택해주세요.");
+					return;
+				}
+				if (file.size > 15 * 1024 * 1024) {
+					toast("이미지는 15MB 이하로 등록해주세요.");
+					return;
+				}
+				const reader = new FileReader();
+				reader.onload = () => {
+					const preview = new Image();
+					preview.onload = () => {
+						const scale = Math.min(1, 1200 / Math.max(preview.width, preview.height));
+						const canvas = document.createElement("canvas");
+						canvas.width = Math.max(1, Math.round(preview.width * scale));
+						canvas.height = Math.max(1, Math.round(preview.height * scale));
+						const context = canvas.getContext("2d");
+						context.fillStyle = "#ffffff";
+						context.fillRect(0, 0, canvas.width, canvas.height);
+						context.drawImage(preview, 0, 0, canvas.width, canvas.height);
+						selectedImage = canvas.toDataURL("image/jpeg", 0.82);
+						$("#uploadContent").innerHTML =
+							`<img src="${selectedImage}" alt="미리보기"><span>이미지 선택 완료</span>`;
+					};
+					preview.onerror = () => {
+						selectedImage = reader.result;
+						$("#uploadContent").innerHTML =
+							`<img src="${selectedImage}" alt="미리보기"><span>이미지 선택 완료</span>`;
+					};
+					preview.src = reader.result;
+				};
+				reader.readAsDataURL(file);
+			});
+			$("#uploadLabel").addEventListener("dragover", (e) => {
+				e.preventDefault();
+				e.currentTarget.style.borderColor = "#94ad45";
+			});
+			$("#uploadLabel").addEventListener(
+				"dragleave",
+				(e) => (e.currentTarget.style.borderColor = ""),
+			);
+			$("#uploadLabel").addEventListener("drop", (e) => {
+				e.preventDefault();
+				e.currentTarget.style.borderColor = "";
+				const file = e.dataTransfer.files[0];
+				if (!file) return;
+				const dt = new DataTransfer();
+				dt.items.add(file);
+				$("#imageFile").files = dt.files;
+				$("#imageFile").dispatchEvent(new Event("change"));
+			});
+			$("#saveProduct").addEventListener("click", () => {
+				const name = $("#productName").value.trim(),
+					stock = Math.floor(Number($("#productStock").value));
+				if (!name) {
+					toast("상품 이름을 입력해주세요.");
+					$("#productName").focus();
+					return;
+				}
+				if (!Number.isFinite(stock) || stock < 0) {
+					toast("재고는 0개 이상으로 입력해주세요.");
+					return;
+				}
+				products.push({
+					id: window.crypto && typeof window.crypto.randomUUID === "function"
+						? window.crypto.randomUUID()
+						: `p-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+					name,
+					stock,
+					image: selectedImage,
+					emoji: ["🎁", "🧸", "🌷", "🍀", "🐰"][products.length % 5],
+					color: palette[products.length % palette.length],
+				});
+				saveProducts();
+				render();
+				closeModal();
+				toast("새 상품을 추가했어요.");
+			});
+			render();
+			renderHistory();
+		</script>
+	</body>
+</html>
