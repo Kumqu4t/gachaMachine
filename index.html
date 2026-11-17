@@ -31,6 +31,19 @@
 				font-family: "DM Sans", "Gowun Dodum", sans-serif;
 				min-height: 100vh;
 			}
+			.page-background {
+				position: fixed;
+				z-index: 0;
+				inset: -14px;
+				background-position: center;
+				background-size: cover;
+				background-repeat: no-repeat;
+				pointer-events: none;
+				transition: filter .2s;
+			}
+			.page-background.blurred {
+				filter: blur(9px);
+			}
 			button,
 			input {
 				font: inherit;
@@ -51,6 +64,8 @@
 				line-height: 1.6;
 			}
 			.app {
+				position: relative;
+				z-index: 1;
 				max-width: 1240px;
 				margin: auto;
 				padding: 24px 34px 44px;
@@ -73,6 +88,7 @@
 				line-height: 1.32;
 				letter-spacing: -0.06em;
 				margin: 10px 0 8px;
+				white-space: pre-line;
 			}
 			.hero p {
 				color: var(--muted);
@@ -84,7 +100,7 @@
 				min-height: 610px;
 				border: 1px solid #e8e5dc;
 				border-radius: 22px;
-				background: #f1efe8;
+				background: rgba(241, 239, 232, 0.88);
 				position: relative;
 				overflow: hidden;
 				display: flex;
@@ -630,6 +646,126 @@
 				margin: 0;
 				font-size: 16px;
 			}
+			.settings-tabs {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 5px;
+				padding: 4px;
+				margin: 0 0 18px;
+				border-radius: 12px;
+				background: #f1f0e9;
+			}
+			.settings-tab {
+				min-height: 40px;
+				border: 0;
+				border-radius: 9px;
+				background: transparent;
+				color: #77796f;
+				font-size: 12px;
+			}
+			.settings-tab.active {
+				background: var(--white);
+				color: var(--deep);
+				box-shadow: 0 2px 8px #27342c10;
+				font-weight: 700;
+			}
+			.settings-tab-panel { display: none; }
+			.settings-tab-panel.active { display: block; }
+			.page-setting-section { margin-top: 18px; }
+			.page-setting-label {
+				display: block;
+				margin-bottom: 8px;
+				color: #77796f;
+				font-size: 11px;
+				font-weight: 600;
+			}
+			.page-title-input {
+				width: 100%;
+				min-height: 76px;
+				resize: vertical;
+				border: 1px solid #e6e4dc;
+				border-radius: 11px;
+				background: #faf9f5;
+				padding: 11px 12px;
+				color: var(--ink);
+				font: inherit;
+				font-size: 13px;
+				line-height: 1.55;
+				outline: none;
+			}
+			.page-title-input:focus { border-color: #a8c846; }
+			.palette-grid {
+				display: grid;
+				grid-template-columns: repeat(5, 1fr);
+				gap: 9px;
+			}
+			.palette-choice {
+				position: relative;
+				min-width: 0;
+				height: 52px;
+				border: 2px solid transparent;
+				border-radius: 12px;
+				box-shadow: inset 0 0 0 1px #20241f12;
+			}
+			.palette-choice.active { border-color: var(--deep); }
+			.palette-choice.active::after {
+				content: "✓";
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				color: var(--deep);
+				font-size: 16px;
+				font-weight: 700;
+			}
+			.background-upload-row {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+			}
+			.background-upload {
+				flex: 1;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				min-height: 46px;
+				border: 1px dashed #d9d7ce;
+				border-radius: 10px;
+				color: #77796f;
+				font-size: 11px;
+				cursor: pointer;
+				touch-action: manipulation;
+			}
+			.remove-background {
+				min-height: 44px;
+				border: 0;
+				border-radius: 9px;
+				padding: 0 12px;
+				background: #f1f0e9;
+				color: #77796f;
+				font-size: 11px;
+			}
+			.background-preview {
+				display: none;
+				width: 100%;
+				height: 110px;
+				margin-top: 10px;
+				border: 1px solid var(--line);
+				border-radius: 11px;
+				background-position: center;
+				background-size: cover;
+			}
+			.background-preview.visible { display: block; }
+			.blur-toggle {
+				display: flex;
+				align-items: center;
+				gap: 9px;
+				margin-top: 12px;
+				color: #62665d;
+				font-size: 12px;
+			}
+			.blur-toggle input { width: 18px; height: 18px; accent-color: var(--deep); }
+			.settings-note { margin: 8px 0 0; color: #9a9b91; font-size: 10px; line-height: 1.5; }
 			.settings-close {
 				width: 32px;
 				height: 32px;
@@ -1074,13 +1210,14 @@
 		</style>
 	</head>
 	<body>
+		<div class="page-background" id="pageBackground" aria-hidden="true"></div>
 		<noscript><div class="no-script-note">이 미리보기에서는 버튼과 재고 계산이 작동하지 않아요. JavaScript가 실행되는 Safari에서 웹 주소로 열어주세요.</div></noscript>
 		<div class="app">
 			<main class="layout">
 				<section class="main-col">
 					<div class="hero">
 						<div class="eyebrow">YOUR PERSONAL GACHA</div>
-						<h1>ZEKAMONGO!<br />GATCHA!</h1>
+						<h1 id="pageTitle">ZEKAMONGO!<br />GATCHA!</h1>
 					</div>
 					<div class="machine-stage">
 						<div class="stage-label">GACHA MACHINE · NO. 01</div>
@@ -1158,13 +1295,45 @@
 		<div class="settings-overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
 			<section class="settings-dialog">
 				<div class="settings-titlebar">
-					<h2 id="settingsTitle">상품 라인업 설정</h2>
+					<h2 id="settingsTitle">설정</h2>
 					<button class="settings-close" id="closeSettings" aria-label="설정 닫기">×</button>
 				</div>
-				<div class="panel" style="margin:0;padding:0;border:0">
-					<div class="panel-head"><h2>등록된 상품</h2><span class="badge" id="itemBadge">0 ITEMS</span></div>
-					<div class="items" id="items"></div>
-					<button class="add-btn" id="openModal">＋ &nbsp;새 상품 추가하기</button>
+				<div class="settings-tabs" role="tablist" aria-label="설정 종류">
+					<button class="settings-tab active" id="productsTabButton" role="tab" aria-selected="true" aria-controls="productsTab" data-tab="productsTab">상품 설정</button>
+					<button class="settings-tab" id="pageTabButton" role="tab" aria-selected="false" aria-controls="pageTab" data-tab="pageTab">페이지 설정</button>
+				</div>
+				<div class="settings-tab-panel active" id="productsTab" role="tabpanel" aria-labelledby="productsTabButton">
+					<div class="panel" style="margin:0;padding:0;border:0">
+						<div class="panel-head"><h2>등록된 상품</h2><span class="badge" id="itemBadge">0 ITEMS</span></div>
+						<div class="items" id="items"></div>
+						<button class="add-btn" id="openModal">＋ &nbsp;새 상품 추가하기</button>
+					</div>
+				</div>
+				<div class="settings-tab-panel" id="pageTab" role="tabpanel" aria-labelledby="pageTabButton">
+					<label class="page-setting-label" for="pageTitleInput">페이지 제목</label>
+					<textarea class="page-title-input" id="pageTitleInput" maxlength="80" placeholder="예: ZEKAMONGO!&#10;GATCHA!"></textarea>
+					<p class="settings-note">줄을 바꾸면 제목에도 줄바꿈이 적용됩니다.</p>
+					<div class="page-setting-section">
+						<span class="page-setting-label">배경 색상 팔레트</span>
+						<div class="palette-grid" id="backgroundPalette">
+							<button class="palette-choice" type="button" data-color="#f7f5ef" aria-label="크림 배경"></button>
+							<button class="palette-choice" type="button" data-color="#edf3df" aria-label="연두 배경"></button>
+							<button class="palette-choice" type="button" data-color="#edf2f8" aria-label="하늘 배경"></button>
+							<button class="palette-choice" type="button" data-color="#f4eff9" aria-label="라벤더 배경"></button>
+							<button class="palette-choice" type="button" data-color="#fff0e8" aria-label="피치 배경"></button>
+						</div>
+					</div>
+					<div class="page-setting-section">
+						<span class="page-setting-label">배경 사진</span>
+						<div class="background-upload-row">
+							<label class="background-upload" for="backgroundFile">＋ 사진 선택하기</label>
+							<input class="file-input" id="backgroundFile" type="file" accept="image/*">
+							<button class="remove-background" id="removeBackground" type="button">사진 제거</button>
+						</div>
+						<div class="background-preview" id="backgroundPreview"></div>
+						<label class="blur-toggle"><input id="backgroundBlur" type="checkbox"><span>배경 사진 블러 처리</span></label>
+						<p class="settings-note">사진은 자동으로 축소해 이 브라우저에 저장합니다.</p>
+					</div>
 				</div>
 			</section>
 		</div>
@@ -1276,6 +1445,12 @@
 				];
 			let products = [],
 				history = [],
+				pageSettings = {
+					title: "",
+					backgroundColor: "#f7f5ef",
+					backgroundImage: "",
+					blurBackground: false,
+				},
 				busy = false,
 				selectedImage = "",
 				toastTimer;
@@ -1289,6 +1464,49 @@
 				history = JSON.parse(localStorage.getItem("gachaStudioHistory")) || [];
 			} catch {
 				history = [];
+			}
+			try {
+				const storedPageSettings = JSON.parse(localStorage.getItem("gachaStudioPageSettings"));
+				if (storedPageSettings) pageSettings = { ...pageSettings, ...storedPageSettings };
+			} catch {}
+			if (!pageSettings.title) pageSettings.title = $("#pageTitle").innerText || "ZEKAMONGO!\nGATCHA!";
+			function applyPageSettings() {
+				$("#pageTitle").textContent = pageSettings.title;
+				$("#pageTitleInput").value = pageSettings.title;
+				document.documentElement.style.setProperty("--paper", pageSettings.backgroundColor);
+				const background = $("#pageBackground");
+				background.style.backgroundImage = pageSettings.backgroundImage
+					? `url("${pageSettings.backgroundImage}")`
+					: "none";
+				background.classList.toggle("blurred", Boolean(pageSettings.blurBackground));
+				$("#backgroundBlur").checked = Boolean(pageSettings.blurBackground);
+				$("#backgroundBlur").disabled = !pageSettings.backgroundImage;
+				const preview = $("#backgroundPreview");
+				preview.style.backgroundImage = pageSettings.backgroundImage
+					? `url("${pageSettings.backgroundImage}")`
+					: "none";
+				preview.classList.toggle("visible", Boolean(pageSettings.backgroundImage));
+				document.querySelectorAll(".palette-choice").forEach((button) => {
+					button.style.backgroundColor = button.dataset.color;
+					button.classList.toggle("active", button.dataset.color === pageSettings.backgroundColor && !pageSettings.backgroundImage);
+				});
+			}
+			function savePageSettings() {
+				try {
+					localStorage.setItem("gachaStudioPageSettings", JSON.stringify(pageSettings));
+				} catch {
+					toast("페이지 설정을 저장하지 못했어요. 배경 이미지 용량을 줄여주세요.");
+				}
+			}
+			function activateSettingsTab(tabId) {
+				document.querySelectorAll(".settings-tab").forEach((button) => {
+					const active = button.dataset.tab === tabId;
+					button.classList.toggle("active", active);
+					button.setAttribute("aria-selected", String(active));
+				});
+				document.querySelectorAll(".settings-tab-panel").forEach((panel) => {
+					panel.classList.toggle("active", panel.id === tabId);
+				});
 			}
 			function toast(message) {
 				const el = $("#toast");
@@ -1551,6 +1769,69 @@
 			settingsOverlay.addEventListener("click", (event) => {
 				if (event.target === settingsOverlay) closeSettings();
 			});
+			document.querySelectorAll(".settings-tab").forEach((button) => {
+				button.addEventListener("click", () => activateSettingsTab(button.dataset.tab));
+			});
+			$("#pageTitleInput").addEventListener("input", (event) => {
+				pageSettings.title = event.target.value;
+				$("#pageTitle").textContent = pageSettings.title;
+				savePageSettings();
+			});
+			document.querySelectorAll(".palette-choice").forEach((button) => {
+				button.addEventListener("click", () => {
+					pageSettings.backgroundColor = button.dataset.color;
+					pageSettings.backgroundImage = "";
+					pageSettings.blurBackground = false;
+					applyPageSettings();
+					savePageSettings();
+				});
+			});
+			$("#backgroundBlur").addEventListener("change", (event) => {
+				pageSettings.blurBackground = event.target.checked;
+				applyPageSettings();
+				savePageSettings();
+			});
+			$("#removeBackground").addEventListener("click", () => {
+				pageSettings.backgroundImage = "";
+				pageSettings.blurBackground = false;
+				applyPageSettings();
+				savePageSettings();
+			});
+			$("#backgroundFile").addEventListener("change", (event) => {
+				const file = event.target.files[0];
+				if (!file) return;
+				if (!file.type.startsWith("image/")) {
+					toast("이미지 파일을 선택해주세요.");
+					return;
+				}
+				if (file.size > 15 * 1024 * 1024) {
+					toast("배경 사진은 15MB 이하로 등록해주세요.");
+					return;
+				}
+				const reader = new FileReader();
+				reader.onerror = () => toast("사진을 읽지 못했어요. 다른 파일을 선택해주세요.");
+				reader.onload = () => {
+					const photo = new Image();
+					photo.onerror = () => toast("사진 형식을 읽지 못했어요. JPEG 또는 PNG를 선택해주세요.");
+					photo.onload = () => {
+						const scale = Math.min(1, 1600 / Math.max(photo.width, photo.height));
+						const canvas = document.createElement("canvas");
+						canvas.width = Math.max(1, Math.round(photo.width * scale));
+						canvas.height = Math.max(1, Math.round(photo.height * scale));
+						const context = canvas.getContext("2d");
+						context.fillStyle = "#ffffff";
+						context.fillRect(0, 0, canvas.width, canvas.height);
+						context.drawImage(photo, 0, 0, canvas.width, canvas.height);
+						pageSettings.backgroundImage = canvas.toDataURL("image/jpeg", 0.78);
+						pageSettings.blurBackground = false;
+						applyPageSettings();
+						savePageSettings();
+					};
+					photo.src = reader.result;
+				};
+				reader.readAsDataURL(file);
+			});
+			applyPageSettings();
 			const clearHistoryBackdrop = $("#clearHistoryBackdrop");
 			$("#clearHistory").addEventListener("click", () => {
 				if (history.length) clearHistoryBackdrop.classList.add("open");
