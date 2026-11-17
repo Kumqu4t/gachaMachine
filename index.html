@@ -270,12 +270,18 @@
 			.ball > img {
 				position: absolute;
 				inset: 0;
-				z-index: 0;
+				z-index: 1;
 				width: 100%;
 				height: 100%;
 				border-radius: 50%;
 				object-fit: cover;
 			}
+			.ball.has-image {
+				border: 0;
+				box-shadow: none;
+			}
+			.ball.has-image:before,
+			.ball.has-image:after { display: none; }
 			.ball:before {
 				content: "";
 				position: absolute;
@@ -1828,6 +1834,7 @@
 						pulled.push({ ...picked });
 						const animatedBall = disp.querySelector(".ball");
 						animatedBall.innerHTML = "";
+						animatedBall.classList.toggle("has-image", Boolean(picked.image));
 						animatedBall.style.setProperty("--c", picked.color || palette[0]);
 						if (picked.image) {
 							const image = document.createElement("img");
