@@ -104,6 +104,16 @@
 				-webkit-backdrop-filter: blur(7px);
 				color: #171b17;
 			}
+			.hero-title-image {
+				display: none;
+				width: auto;
+				max-width: 100%;
+				max-height: 200px;
+				object-fit: contain;
+				object-position: center;
+				margin: 10px auto 8px;
+			}
+			.hero-title-image.visible { display: block; }
 			.hero p {
 				color: var(--muted);
 				font-size: 13px;
@@ -164,6 +174,20 @@
 				filter: drop-shadow(0 18px 13px #3440331c);
 				animation: float 4s ease-in-out infinite;
 			}
+			.machine.custom-machine > :not(.custom-machine-image):not(.dispensed) {
+				visibility: hidden;
+			}
+			.custom-machine-image {
+				display: none;
+				position: absolute;
+				inset: 0;
+				z-index: 3;
+				width: 100%;
+				height: 100%;
+				object-fit: contain;
+				pointer-events: none;
+			}
+			.custom-machine-image.visible { display: block; }
 			.machine-body {
 				position: absolute;
 				left: 27px;
@@ -241,6 +265,16 @@
 				border: 2px solid #30372c;
 				box-shadow: inset -5px -5px 0 #00000012;
 				flex: none;
+				overflow: hidden;
+			}
+			.ball > img {
+				position: absolute;
+				inset: 0;
+				z-index: 0;
+				width: 100%;
+				height: 100%;
+				border-radius: 50%;
+				object-fit: cover;
 			}
 			.ball:before {
 				content: "";
@@ -249,6 +283,7 @@
 				left: 2px;
 				right: 2px;
 				border-top: 1.5px solid #30372c99;
+				z-index: 1;
 			}
 			.ball:after {
 				content: "";
@@ -259,6 +294,7 @@
 				border-radius: 50%;
 				left: 9px;
 				top: 7px;
+				z-index: 2;
 			}
 			.ball:nth-child(3n) {
 				transform: translateY(6px);
@@ -711,6 +747,19 @@
 				outline: none;
 			}
 			.page-title-input:focus { border-color: #a8c846; }
+			.title-image-preview {
+				display: none;
+				max-width: 100%;
+				max-height: 92px;
+				object-fit: contain;
+				border: 1px solid var(--line);
+				border-radius: 9px;
+				background-color: #f4f2eb;
+				background-image: linear-gradient(45deg,#e6e3db 25%,transparent 25%),linear-gradient(-45deg,#e6e3db 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e6e3db 75%),linear-gradient(-45deg,transparent 75%,#e6e3db 75%);
+				background-size: 12px 12px;
+				background-position: 0 0,0 6px,6px -6px,-6px 0;
+			}
+			.title-image-preview.visible { display: block; }
 			.palette-grid {
 				display: grid;
 				grid-template-columns: repeat(5, 1fr);
@@ -1235,11 +1284,13 @@
 					<div class="hero">
 						<div class="eyebrow">YOUR PERSONAL GACHA</div>
 						<h1 id="pageTitle">ZEKAMONGO!</h1>
+						<img id="pageTitleImage" class="hero-title-image" alt="페이지 제목 이미지">
 					</div>
 					<div class="machine-stage">
 						<div class="stage-label">GACHA MACHINE · NO. 01</div>
 						<div class="soldout-message" id="soldoutMessage" role="status">재고가 소진되었어요</div>
 						<div class="machine">
+							<img id="customMachineImage" class="custom-machine-image" alt="등록한 가챠머신 이미지">
 							<div class="top-cap"></div>
 							<div class="machine-body">
 								<div class="machine-window">
@@ -1330,6 +1381,26 @@
 					<label class="page-setting-label" for="pageTitleInput">페이지 제목</label>
 					<textarea class="page-title-input" id="pageTitleInput" maxlength="80" placeholder="예: 행사 제목"></textarea>
 					<p class="settings-note">줄을 바꾸면 제목에도 줄바꿈이 적용됩니다.</p>
+					<div class="page-setting-section">
+						<span class="page-setting-label">제목 이미지</span>
+						<div class="background-upload-row">
+							<label class="background-upload" for="titleImageFile">＋ 제목 이미지 선택하기</label>
+							<input class="file-input" id="titleImageFile" type="file" accept="image/*">
+							<button class="remove-background" id="removeTitleImage" type="button">이미지 제거</button>
+						</div>
+						<img class="title-image-preview" id="titleImagePreview" alt="제목 이미지 미리보기">
+						<p class="settings-note">이미지를 등록하면 텍스트 제목 대신 표시됩니다. PNG나 WebP 투명 배경도 지원합니다.</p>
+					</div>
+					<div class="page-setting-section">
+						<span class="page-setting-label">가챠머신 이미지</span>
+						<div class="background-upload-row">
+							<label class="background-upload" for="machineImageFile">＋ 머신 이미지 선택하기</label>
+							<input class="file-input" id="machineImageFile" type="file" accept="image/*">
+							<button class="remove-background" id="removeMachineImage" type="button">이미지 제거</button>
+						</div>
+						<img class="title-image-preview" id="machineImagePreview" alt="가챠머신 이미지 미리보기">
+						<p class="settings-note">등록한 이미지가 기본 머신 그림을 대신합니다. PNG나 WebP 투명 배경 이미지도 사용할 수 있어요.</p>
+					</div>
 					<div class="page-setting-section">
 						<span class="page-setting-label">배경 색상 팔레트</span>
 						<div class="palette-grid" id="backgroundPalette">
@@ -1464,6 +1535,8 @@
 				history = [],
 				pageSettings = {
 					title: "",
+					titleImage: "",
+					machineImage: "",
 					backgroundColor: "#f7f5ef",
 					backgroundImage: "",
 					blurBackground: false,
@@ -1491,7 +1564,22 @@
 				const title = $("#pageTitle");
 				title.textContent = pageSettings.title;
 				title.classList.toggle("on-photo", Boolean(pageSettings.backgroundImage));
+				title.style.display = pageSettings.titleImage ? "none" : "";
+				const titleImage = $("#pageTitleImage");
+				titleImage.src = pageSettings.titleImage || "";
+				titleImage.classList.toggle("visible", Boolean(pageSettings.titleImage));
 				$("#pageTitleInput").value = pageSettings.title;
+				const titlePreview = $("#titleImagePreview");
+				titlePreview.src = pageSettings.titleImage || "";
+				titlePreview.classList.toggle("visible", Boolean(pageSettings.titleImage));
+				const machine = $(".machine");
+				const machineImage = $("#customMachineImage");
+				machineImage.src = pageSettings.machineImage || "";
+				machineImage.classList.toggle("visible", Boolean(pageSettings.machineImage));
+				machine.classList.toggle("custom-machine", Boolean(pageSettings.machineImage));
+				const machinePreview = $("#machineImagePreview");
+				machinePreview.src = pageSettings.machineImage || "";
+				machinePreview.classList.toggle("visible", Boolean(pageSettings.machineImage));
 				document.documentElement.style.setProperty("--paper", pageSettings.backgroundColor);
 				const background = $("#pageBackground");
 				background.style.backgroundImage = pageSettings.backgroundImage
@@ -1586,6 +1674,15 @@
 				$("#decreaseCount").disabled = busy || count <= 1;
 				$("#increaseCount").disabled = busy || count >= n;
 			}
+			function pickWeightedProduct(pool) {
+				const total = pool.reduce((sum, product) => sum + Number(product.stock || 0), 0);
+				let roll = Math.random() * total;
+				for (const product of pool) {
+					roll -= Number(product.stock || 0);
+					if (roll < 0) return product;
+				}
+				return pool[pool.length - 1];
+			}
 			function render() {
 				const items = $("#items");
 				items.innerHTML = "";
@@ -1612,18 +1709,23 @@
 				$("#itemBadge").textContent = `${products.length} ITEMS`;
 				const balls = $("#balls");
 				balls.innerHTML = "";
-				for (
-					let i = 0;
-					i < Math.min(14, Math.max(5, products.length * 3));
-					i++
-				) {
+				const inStock = products.filter((product) => Number(product.stock) > 0);
+				const capsuleCount = inStock.length ? Math.min(14, Math.max(5, totalStock())) : 5;
+				for (let i = 0; i < capsuleCount; i++) {
 					const b = document.createElement("div");
 					b.className = "ball";
+					const product = inStock.length ? pickWeightedProduct(inStock) : null;
 					b.style.setProperty(
 						"--c",
-						(products.length ? products[i % products.length].color : null) ||
+						(product ? product.color : null) ||
 							palette[i % palette.length],
 					);
+					if (product && product.image) {
+						const image = document.createElement("img");
+						image.src = product.image;
+						image.alt = "";
+						b.append(image);
+					}
 					balls.append(b);
 				}
 				updateStock();
@@ -1724,9 +1826,15 @@
 						}
 						picked.stock--;
 						pulled.push({ ...picked });
-						disp
-							.querySelector(".ball")
-							.style.setProperty("--c", picked.color || palette[0]);
+						const animatedBall = disp.querySelector(".ball");
+						animatedBall.innerHTML = "";
+						animatedBall.style.setProperty("--c", picked.color || palette[0]);
+						if (picked.image) {
+							const image = document.createElement("img");
+							image.src = picked.image;
+							image.alt = "";
+							animatedBall.append(image);
+						}
 						disp.classList.remove("show");
 						void disp.offsetWidth;
 						disp.classList.add("show");
@@ -1798,6 +1906,88 @@
 				title.textContent = pageSettings.title;
 				title.classList.toggle("on-photo", Boolean(pageSettings.backgroundImage));
 				savePageSettings();
+			});
+			$("#removeTitleImage").addEventListener("click", () => {
+				pageSettings.titleImage = "";
+				$("#titleImageFile").value = "";
+				applyPageSettings();
+				savePageSettings();
+			});
+			$("#titleImageFile").addEventListener("change", (event) => {
+				const file = event.target.files[0];
+				if (!file) return;
+				if (!file.type.startsWith("image/")) {
+					toast("이미지 파일을 선택해주세요.");
+					event.target.value = "";
+					return;
+				}
+				if (file.size > 15 * 1024 * 1024) {
+					toast("제목 이미지는 15MB 이하로 등록해주세요.");
+					event.target.value = "";
+					return;
+				}
+				const reader = new FileReader();
+				reader.onerror = () => toast("이미지를 읽지 못했어요. 다른 파일을 선택해주세요.");
+				reader.onload = () => {
+					const image = new Image();
+					image.onerror = () => toast("이미지 형식을 읽지 못했어요.");
+					image.onload = () => {
+						const scale = Math.min(1, 1400 / Math.max(image.width, image.height));
+						const canvas = document.createElement("canvas");
+						canvas.width = Math.max(1, Math.round(image.width * scale));
+						canvas.height = Math.max(1, Math.round(image.height * scale));
+						canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+						const webp = canvas.toDataURL("image/webp", 0.88);
+						pageSettings.titleImage = webp.startsWith("data:image/webp")
+							? webp
+							: canvas.toDataURL("image/png");
+						applyPageSettings();
+						savePageSettings();
+					};
+					image.src = reader.result;
+				};
+				reader.readAsDataURL(file);
+			});
+			$("#removeMachineImage").addEventListener("click", () => {
+				pageSettings.machineImage = "";
+				$("#machineImageFile").value = "";
+				applyPageSettings();
+				savePageSettings();
+			});
+			$("#machineImageFile").addEventListener("change", (event) => {
+				const file = event.target.files[0];
+				if (!file) return;
+				if (!file.type.startsWith("image/")) {
+					toast("이미지 파일을 선택해주세요.");
+					event.target.value = "";
+					return;
+				}
+				if (file.size > 15 * 1024 * 1024) {
+					toast("가챠머신 이미지는 15MB 이하로 등록해주세요.");
+					event.target.value = "";
+					return;
+				}
+				const reader = new FileReader();
+				reader.onerror = () => toast("이미지를 읽지 못했어요. 다른 파일을 선택해주세요.");
+				reader.onload = () => {
+					const image = new Image();
+					image.onerror = () => toast("이미지 형식을 읽지 못했어요.");
+					image.onload = () => {
+						const scale = Math.min(1, 1400 / Math.max(image.width, image.height));
+						const canvas = document.createElement("canvas");
+						canvas.width = Math.max(1, Math.round(image.width * scale));
+						canvas.height = Math.max(1, Math.round(image.height * scale));
+						canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+						const webp = canvas.toDataURL("image/webp", 0.88);
+						pageSettings.machineImage = webp.startsWith("data:image/webp")
+							? webp
+							: canvas.toDataURL("image/png");
+						applyPageSettings();
+						savePageSettings();
+					};
+					image.src = reader.result;
+				};
+				reader.readAsDataURL(file);
 			});
 			document.querySelectorAll(".palette-choice").forEach((button) => {
 				button.addEventListener("click", () => {
