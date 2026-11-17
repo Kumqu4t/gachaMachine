@@ -1,0 +1,2 @@
+# gachaMachine
+easy gachaMachine web
