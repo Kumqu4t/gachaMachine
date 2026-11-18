@@ -1668,7 +1668,7 @@
 					min="0"
 					value="10"
 				/><label class="epic-toggle epic-form-toggle" for="productEpicEffect"><input id="productEpicEffect" type="checkbox"><span>에픽빔 특별 효과</span></label>
-				<p class="epic-note">이 상품이 포함된 뽑기 결과에서 빛과 흔들림 효과가 한 번 재생돼요.</p>
+				<p class="epic-note">이 상품이 뽑힐 때마다 빛과 흔들림 효과가 재생돼요.</p>
 				<label class="field"
 					>상품 이미지 <span style="color: #aaa">(선택)</span></label
 				><label class="upload" id="uploadLabel" for="imageFile"
@@ -1730,6 +1730,7 @@
 				];
 			let products = [],
 				history = [],
+				productStockInputs = new Map(),
 				productPresets = {},
 				historyPresets = {},
 				activePreset = 1,
@@ -1776,7 +1777,22 @@
 				if (!Array.isArray(productPresets[preset])) productPresets[preset] = [];
 				if (!Array.isArray(historyPresets[preset])) historyPresets[preset] = [];
 			});
-			products = productPresets[String(activePreset)];
+			function stockOverrideKey(preset = activePreset) {
+				return `gachaStudioStockOverride${preset}`;
+			}
+			function applyStockOverride(preset, presetProducts) {
+				try {
+					const savedStocks = JSON.parse(localStorage.getItem(stockOverrideKey(preset)));
+					if (savedStocks && typeof savedStocks === "object") {
+						presetProducts.forEach((product) => {
+							if (Object.hasOwn(savedStocks, product.id))
+								product.stock = Math.max(0, Number(savedStocks[product.id]) || 0);
+						});
+					}
+				} catch {}
+				return presetProducts;
+			}
+			products = applyStockOverride(activePreset, productPresets[String(activePreset)]);
 			history = historyPresets[String(activePreset)];
 			try {
 				const storedPageSettings = JSON.parse(localStorage.getItem("gachaStudioPageSettings"));
@@ -1854,6 +1870,7 @@
 					legacyProducts = localStorage.getItem("gachaStudioProducts");
 					if (legacyProducts !== null) localStorage.removeItem("gachaStudioProducts");
 					localStorage.setItem("gachaStudioProductPresets", JSON.stringify(productPresets));
+					localStorage.removeItem(stockOverrideKey());
 					localStorage.setItem("gachaStudioActivePreset", presetKey);
 				} catch {
 					if (legacyProducts !== null) {
@@ -1886,7 +1903,7 @@
 			function selectPreset(preset) {
 				if (busy || preset === activePreset) return;
 				activePreset = preset;
-				products = productPresets[String(activePreset)];
+				products = applyStockOverride(activePreset, productPresets[String(activePreset)]);
 				history = historyPresets[String(activePreset)];
 				try { localStorage.setItem("gachaStudioActivePreset", String(activePreset)); } catch {}
 				document.querySelectorAll(".preset-button").forEach((button) => {
@@ -1903,6 +1920,14 @@
 					(sum, p) => sum + Math.max(0, Number(p.stock) || 0),
 					0,
 				);
+			}
+			function saveStockOverride() {
+				const stocks = Object.fromEntries(products.map((product) => [product.id, Math.max(0, Number(product.stock) || 0)]));
+				try {
+					localStorage.setItem(stockOverrideKey(), JSON.stringify(stocks));
+				} catch {
+					toast("재고 변경을 저장하지 못했어요. 브라우저 저장 공간을 확인해주세요.");
+				}
 			}
 			function updateStock() {
 				const n = totalStock(),
@@ -1930,9 +1955,10 @@
 				}
 				return pool[pool.length - 1];
 			}
-			function render() {
+			function renderProducts() {
 				const items = $("#items");
 				items.innerHTML = "";
+				productStockInputs.clear();
 				if (!products.length) {
 					const note = document.createElement("p");
 					note.className = "preset-empty-note";
@@ -1953,10 +1979,12 @@
 					});
 					const input = row.querySelector(".count-input");
 					input.value = p.stock;
+					productStockInputs.set(p.id, input);
 					input.addEventListener("change", () => {
 						p.stock = Math.max(0, parseInt(input.value) || 0);
 						input.value = p.stock;
 						saveProducts();
+						renderCapsules();
 						updateStock();
 					});
 					row.querySelector(".icon-btn").addEventListener("click", () => {
@@ -1966,6 +1994,8 @@
 					});
 					items.append(row);
 				});
+			}
+			function renderCapsules() {
 				const balls = $("#balls");
 				balls.innerHTML = "";
 				const inStock = products.filter((product) => Number(product.stock) > 0);
@@ -1987,6 +2017,10 @@
 					}
 					balls.append(b);
 				}
+			}
+			function render() {
+				renderProducts();
+				renderCapsules();
 				updateStock();
 			}
 			function addResultCard(container, p, qty) {
@@ -1998,16 +2032,14 @@
 			}
 			function showDrawResult(pulled) {
 				const counts = new Map();
-				pulled.forEach((p) => counts.set(p.id, (counts.get(p.id) || 0) + 1));
+				pulled.forEach((item) => {
+					const entry = counts.get(item.id);
+					if (entry) entry.quantity++;
+					else counts.set(item.id, { item, quantity: 1 });
+				});
 				const grid = $("#drawResultGrid");
 				grid.innerHTML = "";
-				counts.forEach((qty, id) =>
-					addResultCard(
-						grid,
-						pulled.find((p) => p.id === id),
-						qty,
-					),
-				);
+				counts.forEach(({ item, quantity }) => addResultCard(grid, item, quantity));
 				$("#drawResultMeta").textContent =
 					`총 ${pulled.length}회 · ${counts.size}종류의 상품`;
 				$("#drawResult").classList.add("open");
@@ -2039,6 +2071,7 @@
 					host.innerHTML = "아직 뽑은 상품이 없어요.<br>첫 가챠를 돌려보세요!";
 					return;
 				}
+				const currentProductsById = new Map(products.map((product) => [product.id, product]));
 				const totals = new Map();
 				history.forEach((round) => round.items.forEach((item) => {
 					const key = item.id || item.name;
@@ -2067,18 +2100,17 @@
 					const chips = document.createElement("div");
 					chips.className = "history-chips";
 					const counts = new Map();
-					round.items.forEach((p) =>
-						counts.set(p.id, (counts.get(p.id) || 0) + 1),
-					);
-					counts.forEach((qty, id) => {
-						const stored = round.items.find((p) => p.id === id),
-							p = {
-								...stored,
-								image: stored.image || (products.find((x) => x.id === id) || {}).image,
-							};
+					round.items.forEach((item) => {
+						const entry = counts.get(item.id);
+						if (entry) entry.quantity++;
+						else counts.set(item.id, { item, quantity: 1 });
+					});
+					counts.forEach(({ item, quantity }) => {
+						const currentProduct = currentProductsById.get(item.id);
+						const p = { ...item, image: item.image || (currentProduct || {}).image };
 						const chip = document.createElement("span");
 						chip.className = "history-chip";
-						chip.innerHTML = `${p.image ? `<img src="${p.image}" alt="">` : `<span class="chip-emoji">${p.emoji || "🎁"}</span>`}<span></span><b>×${qty}</b>`;
+						chip.innerHTML = `${p.image ? `<img src="${p.image}" alt="">` : `<span class="chip-emoji">${p.emoji || "🎁"}</span>`}<span></span><b>×${quantity}</b>`;
 						chip.querySelector("span:not(.chip-emoji)").textContent = p.name;
 						chips.append(chip);
 					});
@@ -2157,17 +2189,11 @@
 						await new Promise((resolve) => setTimeout(resolve, i ? 500 : 80));
 						const pool = products.filter((p) => p.stock > 0);
 						if (!pool.length) break;
-						let roll =
-								Math.random() * pool.reduce((sum, p) => sum + p.stock, 0),
-							picked = pool[0];
-						for (const p of pool) {
-							roll -= p.stock;
-							if (roll < 0) {
-								picked = p;
-								break;
-							}
-						}
+						const picked = pickWeightedProduct(pool);
 						picked.stock--;
+						const stockInput = productStockInputs.get(picked.id);
+						if (stockInput) stockInput.value = picked.stock;
+						saveStockOverride();
 						pulled.push({ ...picked });
 						if (picked.epicEffect) playEpicEffect();
 						const animatedBall = disp.querySelector(".ball");
@@ -2183,8 +2209,7 @@
 						disp.classList.remove("show");
 						void disp.offsetWidth;
 						disp.classList.add("show");
-						render();
-						saveProducts();
+						updateStock();
 					}
 					if (pulled.length) {
 						await new Promise((resolve) => setTimeout(resolve, 350));
@@ -2203,7 +2228,10 @@
 					} else toast("뽑기를 마치지 못했어요. 다시 시도해주세요.");
 				} finally {
 					busy = false;
-					updateStock();
+					if (pulled.length) {
+						saveProducts();
+						render();
+					} else updateStock();
 					$("#knob").style.transform = "rotate(0deg)";
 				}
 			}
