@@ -140,10 +140,10 @@
 				inset: 0;
 				pointer-events: none;
 				opacity: 0;
-				background: radial-gradient(ellipse at center, #fff7b9b8 0%, #ffd64b6b 38%, transparent 78%);
+				background: radial-gradient(ellipse at center, #c16dffeb 0%, #853fe0c9 38%, #57239c66 62%, transparent 80%);
 			}
 			.epic-flash.active { animation: epicFlash 1.6s ease-out; }
-			.app.epic-shake { animation: epicShake .62s ease-in-out; }
+			.app.epic-shake { animation: epicShake .48s ease-in-out; }
 			@keyframes epicFlash {
 				0% { opacity: 0; }
 				12% { opacity: .75; }
@@ -154,10 +154,16 @@
 			}
 			@keyframes epicShake {
 				0%, 100% { transform: translateX(0); }
-				18% { transform: translateX(-7px); }
-				36% { transform: translateX(6px); }
-				54% { transform: translateX(-4px); }
-				72% { transform: translateX(3px); }
+				8% { transform: translateX(-10px); }
+				16% { transform: translateX(10px); }
+				24% { transform: translateX(-8px); }
+				32% { transform: translateX(8px); }
+				40% { transform: translateX(0); }
+				52% { transform: translateX(-10px); }
+				60% { transform: translateX(10px); }
+				68% { transform: translateX(-8px); }
+				76% { transform: translateX(8px); }
+				84% { transform: translateX(0); }
 			}
 			@media (prefers-reduced-motion: reduce) {
 				.app.epic-shake { animation: none; }
