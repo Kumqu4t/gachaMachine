@@ -737,6 +737,34 @@
 				transform: translateY(-2px);
 				background: #35463a;
 			}
+			.guide-fab {
+				position: fixed;
+				z-index: 9;
+				right: 27px;
+				bottom: calc(76px + env(safe-area-inset-bottom));
+				width: 44px;
+				height: 44px;
+				border: 1px solid #ffffffa8;
+				border-radius: 50%;
+				background: #fffefa;
+				color: var(--deep);
+				box-shadow: 0 6px 18px #27342c24;
+				font-size: 19px;
+				font-weight: 700;
+			}
+			.guide-content p {
+				margin: 0 0 14px;
+				color: #565c52;
+				font-size: 13px;
+				line-height: 1.75;
+			}
+			.guide-content p:last-child { margin-bottom: 0; }
+			.guide-content .guide-storage-note {
+				padding: 13px 14px;
+				border-radius: 12px;
+				background: #f3f2eb;
+				color: #6a604d;
+			}
 			.settings-overlay {
 				position: fixed;
 				inset: 0;
@@ -1504,6 +1532,20 @@
 		</div>
 		<div class="epic-flash" id="epicFlash" aria-hidden="true"></div>
 		<button class="settings-fab" id="openSettings" aria-label="상품 설정 열기"><span>⚙</span> 설정</button>
+		<button class="guide-fab" id="openGuide" aria-label="사용 전 안내문 보기">?</button>
+		<div class="settings-overlay" id="guideOverlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+			<section class="settings-dialog guide-dialog">
+				<div class="settings-titlebar">
+					<h2 id="guideTitle">사용 전 안내문</h2>
+					<button class="settings-close" id="closeGuide" aria-label="안내문 닫기">×</button>
+				</div>
+				<div class="guide-content">
+					<p>이 사이트는 커스텀 가능한 가챠머신 사이트입니다. 가게나 생일카페 등 이벤트에서 컨셉에 맞춰 사용할 수 있도록 커스텀 자유도를 높였어요.</p>
+					<p>상품, 가챠머신, 제목이나 배경까지 모두 원하는 이미지를 넣어 사용할 수 있어요.</p>
+					<p class="guide-storage-note">모든 커스텀 내용 및 가챠 기록 등은 사용하는 기기의 브라우저에 저장되어 브라우저 초기화/기록 삭제 전까지 유지됩니다. (타 기기와 연동X)</p>
+				</div>
+			</section>
+		</div>
 		<div class="settings-overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
 			<section class="settings-dialog">
 				<div class="settings-titlebar">
@@ -1866,6 +1908,7 @@
 				const n = totalStock(),
 					count = Math.floor(Number($("#drawCount").value)),
 					short = Number.isFinite(count) && count > n;
+				$("#itemBadge").textContent = `${products.length} ITEMS · 재고 ${n}개`;
 				$("#remaining").textContent = `남은 캡슐 ${n}개`;
 				$("#soldoutMessage").classList.toggle("visible", n === 0);
 				$("#drawCount").max = Math.max(1, n);
@@ -1923,7 +1966,6 @@
 					});
 					items.append(row);
 				});
-				$("#itemBadge").textContent = `${products.length} ITEMS`;
 				const balls = $("#balls");
 				balls.innerHTML = "";
 				const inStock = products.filter((product) => Number(product.stock) > 0);
@@ -2193,6 +2235,21 @@
 					? "회차별 기록 닫기 ↑"
 					: "회차별 기록 보기 ↓";
 				if (open) panel.scrollIntoView({ behavior: "smooth", block: "center" });
+			});
+			const guideOverlay = $("#guideOverlay");
+			function openGuide() {
+				guideOverlay.classList.add("open");
+				$("#openGuide").setAttribute("aria-expanded", "true");
+			}
+			function closeGuide() {
+				guideOverlay.classList.remove("open");
+				$("#openGuide").setAttribute("aria-expanded", "false");
+				try { localStorage.setItem("gachaStudioGuideSeen", "true"); } catch {}
+			}
+			$("#openGuide").addEventListener("click", openGuide);
+			$("#closeGuide").addEventListener("click", closeGuide);
+			guideOverlay.addEventListener("click", (event) => {
+				if (event.target === guideOverlay) closeGuide();
 			});
 			const settingsOverlay = $("#settingsOverlay");
 			function closeSettings() {
@@ -2480,6 +2537,9 @@
 			});
 			render();
 			renderHistory();
+			try {
+				if (localStorage.getItem("gachaStudioGuideSeen") !== "true") openGuide();
+			} catch { openGuide(); }
 		</script>
 	</body>
 </html>
