@@ -761,6 +761,42 @@
 			}
 			.settings-tab-panel { display: none; }
 			.settings-tab-panel.active { display: block; }
+			.preset-picker { margin: 0 0 18px; }
+			.preset-picker-label {
+				display: block;
+				margin-bottom: 8px;
+				color: #77796f;
+				font-size: 11px;
+				font-weight: 600;
+			}
+			.preset-buttons {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: 7px;
+			}
+			.preset-button {
+				min-height: 42px;
+				border: 1px solid #e6e4dc;
+				border-radius: 10px;
+				background: #faf9f5;
+				color: #77796f;
+				font-size: 12px;
+				font-weight: 600;
+			}
+			.preset-button.active {
+				border-color: var(--deep);
+				background: var(--deep);
+				color: #fff;
+			}
+			.preset-empty-note {
+				margin: 0;
+				padding: 18px 10px;
+				border: 1px dashed #e6e4dc;
+				border-radius: 12px;
+				color: #92948a;
+				font-size: 12px;
+				text-align: center;
+			}
 			.page-setting-section { margin-top: 18px; }
 			.page-setting-label {
 				display: block;
@@ -1415,6 +1451,15 @@
 				</div>
 				<div class="settings-tab-panel active" id="productsTab" role="tabpanel" aria-labelledby="productsTabButton">
 					<div class="panel" style="margin:0;padding:0;border:0">
+						<div class="preset-picker">
+							<span class="preset-picker-label">상품 프리셋</span>
+							<div class="preset-buttons" role="group" aria-label="상품 프리셋 선택">
+								<button class="preset-button active" type="button" data-preset="1" aria-pressed="true">1번</button>
+								<button class="preset-button" type="button" data-preset="2" aria-pressed="false">2번</button>
+								<button class="preset-button" type="button" data-preset="3" aria-pressed="false">3번</button>
+							</div>
+							<p class="settings-note">프리셋마다 상품, 재고, 뽑기 기록이 따로 저장됩니다.</p>
+						</div>
 						<div class="panel-head"><h2>등록된 상품</h2><span class="badge" id="itemBadge">0 ITEMS</span></div>
 						<div class="items" id="items"></div>
 						<button class="add-btn" id="openModal">＋ &nbsp;새 상품 추가하기</button>
@@ -1576,6 +1621,9 @@
 				];
 			let products = [],
 				history = [],
+				productPresets = {},
+				historyPresets = {},
+				activePreset = 1,
 				pageSettings = {
 					title: "",
 					titleImage: "",
@@ -1586,18 +1634,40 @@
 				},
 				busy = false,
 				selectedImage = "",
-				toastTimer;
+				toastTimer,
+				drawAudioContext;
 			try {
-				products =
-					JSON.parse(localStorage.getItem("gachaStudioProducts")) || defaults;
+				const saved = JSON.parse(localStorage.getItem("gachaStudioProductPresets"));
+				if (saved && typeof saved === "object" && !Array.isArray(saved)) productPresets = saved;
+			} catch { productPresets = {}; }
+			try {
+				const saved = JSON.parse(localStorage.getItem("gachaStudioHistoryPresets"));
+				if (saved && typeof saved === "object" && !Array.isArray(saved)) historyPresets = saved;
+			} catch { historyPresets = {}; }
+			try {
+				const storedActivePreset = Number(localStorage.getItem("gachaStudioActivePreset"));
+				if ([1, 2, 3].includes(storedActivePreset)) activePreset = storedActivePreset;
+			} catch {}
+			try {
+				const legacyProducts = JSON.parse(localStorage.getItem("gachaStudioProducts"));
+				if (!Array.isArray(productPresets["1"]))
+					productPresets["1"] = Array.isArray(legacyProducts) ? legacyProducts : defaults;
 			} catch {
-				products = defaults;
+				if (!Array.isArray(productPresets["1"])) productPresets["1"] = defaults;
 			}
 			try {
-				history = JSON.parse(localStorage.getItem("gachaStudioHistory")) || [];
+				const legacyHistory = JSON.parse(localStorage.getItem("gachaStudioHistory"));
+				if (!Array.isArray(historyPresets["1"]))
+					historyPresets["1"] = Array.isArray(legacyHistory) ? legacyHistory : [];
 			} catch {
-				history = [];
+				if (!Array.isArray(historyPresets["1"])) historyPresets["1"] = [];
 			}
+			["1", "2", "3"].forEach((preset) => {
+				if (!Array.isArray(productPresets[preset])) productPresets[preset] = [];
+				if (!Array.isArray(historyPresets[preset])) historyPresets[preset] = [];
+			});
+			products = productPresets[String(activePreset)];
+			history = historyPresets[String(activePreset)];
 			try {
 				const storedPageSettings = JSON.parse(localStorage.getItem("gachaStudioPageSettings"));
 				if (storedPageSettings) pageSettings = { ...pageSettings, ...storedPageSettings };
@@ -1667,33 +1737,56 @@
 				toastTimer = setTimeout(() => el.classList.remove("show"), 2400);
 			}
 			function saveProducts() {
+				const presetKey = String(activePreset);
+				productPresets[presetKey] = products;
+				let legacyProducts = null;
 				try {
-					localStorage.setItem("gachaStudioProducts", JSON.stringify(products));
+					legacyProducts = localStorage.getItem("gachaStudioProducts");
+					if (legacyProducts !== null) localStorage.removeItem("gachaStudioProducts");
+					localStorage.setItem("gachaStudioProductPresets", JSON.stringify(productPresets));
+					localStorage.setItem("gachaStudioActivePreset", presetKey);
 				} catch {
+					if (legacyProducts !== null) {
+						try { localStorage.setItem("gachaStudioProducts", legacyProducts); } catch {}
+					}
 					toast("저장 공간이 부족해 상품 변경을 저장하지 못했어요.");
 				}
 			}
 			function saveHistory() {
+				const presetKey = String(activePreset);
+				historyPresets[presetKey] = history.map((r) => ({
+					at: r.at,
+					items: r.items.map(({ id, name, emoji, color }) => ({ id, name, emoji, color })),
+				}));
+				let legacyHistory = null;
 				try {
-					localStorage.setItem(
-						"gachaStudioHistory",
-						JSON.stringify(
-							history.map((r) => ({
-								at: r.at,
-								items: r.items.map(({ id, name, emoji, color }) => ({
-									id,
-									name,
-									emoji,
-									color,
-								})),
-							})),
-						),
-					);
+					legacyHistory = localStorage.getItem("gachaStudioHistory");
+					if (legacyHistory !== null) localStorage.removeItem("gachaStudioHistory");
+					localStorage.setItem("gachaStudioHistoryPresets", JSON.stringify(historyPresets));
+					localStorage.setItem("gachaStudioActivePreset", presetKey);
 				} catch {
+					if (legacyHistory !== null) {
+						try { localStorage.setItem("gachaStudioHistory", legacyHistory); } catch {}
+					}
 					toast(
 						"기록은 표시했지만 브라우저 저장 공간이 부족해 저장하지 못했어요.",
 					);
 				}
+			}
+			function selectPreset(preset) {
+				if (busy || preset === activePreset) return;
+				activePreset = preset;
+				products = productPresets[String(activePreset)];
+				history = historyPresets[String(activePreset)];
+				try { localStorage.setItem("gachaStudioActivePreset", String(activePreset)); } catch {}
+				document.querySelectorAll(".preset-button").forEach((button) => {
+					const selected = Number(button.dataset.preset) === activePreset;
+					button.classList.toggle("active", selected);
+					button.setAttribute("aria-pressed", String(selected));
+				});
+				$("#drawCount").value = 1;
+				render();
+				renderHistory();
 			}
 			function totalStock() {
 				return products.reduce(
@@ -1729,6 +1822,12 @@
 			function render() {
 				const items = $("#items");
 				items.innerHTML = "";
+				if (!products.length) {
+					const note = document.createElement("p");
+					note.className = "preset-empty-note";
+					note.textContent = "아직 등록된 상품이 없어요. 상품을 추가해주세요.";
+					items.append(note);
+				}
 				products.forEach((p, i) => {
 					const row = document.createElement("div");
 					row.className = "item";
@@ -1855,6 +1954,55 @@
 					host.append(row);
 				});
 			}
+			function playDrawSound() {
+				const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+				if (!AudioContextClass) return;
+				try {
+					drawAudioContext ||= new AudioContextClass();
+					const play = () => {
+						const context = drawAudioContext;
+						const now = context.currentTime + 0.015;
+						const hitTimes = [0, 0.16, 0.3, 0.42, 0.53, 0.63, 0.72, 0.8, 0.87, 0.93];
+						const sampleRate = context.sampleRate;
+						const noiseBuffer = context.createBuffer(1, Math.ceil(sampleRate * 0.14), sampleRate);
+						const noise = noiseBuffer.getChannelData(0);
+						for (let i = 0; i < noise.length; i++)
+							noise[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / noise.length, 2.4);
+						hitTimes.forEach((offset, index) => {
+							const at = now + offset;
+							const strength = 0.65 + (index / (hitTimes.length - 1)) * 0.45;
+							const noiseSource = context.createBufferSource();
+							const filter = context.createBiquadFilter();
+							const noiseVolume = context.createGain();
+							noiseSource.buffer = noiseBuffer;
+							filter.type = "lowpass";
+							filter.frequency.setValueAtTime(1500, at);
+							noiseVolume.gain.setValueAtTime(0.0001, at);
+							noiseVolume.gain.exponentialRampToValueAtTime(0.16 * strength, at + 0.008);
+							noiseVolume.gain.exponentialRampToValueAtTime(0.0001, at + 0.13);
+							noiseSource.connect(filter);
+							filter.connect(noiseVolume);
+							noiseVolume.connect(context.destination);
+							noiseSource.start(at);
+							const drum = context.createOscillator();
+							const drumVolume = context.createGain();
+							drum.type = "sine";
+							drum.frequency.setValueAtTime(105 + index * 2, at);
+							drum.frequency.exponentialRampToValueAtTime(48, at + 0.11);
+							drumVolume.gain.setValueAtTime(0.0001, at);
+							drumVolume.gain.exponentialRampToValueAtTime(0.18 * strength, at + 0.008);
+							drumVolume.gain.exponentialRampToValueAtTime(0.0001, at + 0.13);
+							drum.connect(drumVolume);
+							drumVolume.connect(context.destination);
+							drum.start(at);
+							drum.stop(at + 0.14);
+						});
+					};
+					if (drawAudioContext.state === "suspended")
+						drawAudioContext.resume().then(play).catch(() => {});
+					else play();
+				} catch {}
+			}
 			async function draw() {
 				if (busy) return;
 				const count = Math.floor(Number($("#drawCount").value));
@@ -1867,6 +2015,7 @@
 					return;
 				}
 				busy = true;
+				playDrawSound();
 				updateStock();
 				$("#knob").style.transform = "rotate(720deg)";
 				const disp = $("#dispensed"),
@@ -1969,6 +2118,12 @@
 			});
 			document.querySelectorAll(".settings-tab").forEach((button) => {
 				button.addEventListener("click", () => activateSettingsTab(button.dataset.tab));
+			});
+			document.querySelectorAll(".preset-button").forEach((button) => {
+				const selected = Number(button.dataset.preset) === activePreset;
+				button.classList.toggle("active", selected);
+				button.setAttribute("aria-pressed", String(selected));
+				button.addEventListener("click", () => selectPreset(Number(button.dataset.preset)));
 			});
 			$("#pageTitleInput").addEventListener("input", (event) => {
 				pageSettings.title = event.target.value;
@@ -2127,7 +2282,7 @@
 			});
 			$("#confirmClearHistory").addEventListener("click", () => {
 				history = [];
-				localStorage.removeItem("gachaStudioHistory");
+				saveHistory();
 				renderHistory();
 				clearHistoryBackdrop.classList.remove("open");
 				toast("회차별 기록을 초기화했어요.");
