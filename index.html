@@ -134,6 +134,35 @@
 			.machine-stage.no-photo {
 				background: rgba(249, 245, 225, 0.25);
 			}
+			.epic-flash {
+				position: fixed;
+				z-index: 11;
+				inset: 0;
+				pointer-events: none;
+				opacity: 0;
+				background: radial-gradient(ellipse at center, #fff7b9b8 0%, #ffd64b6b 38%, transparent 78%);
+			}
+			.epic-flash.active { animation: epicFlash 1.6s ease-out; }
+			.app.epic-shake { animation: epicShake .62s ease-in-out; }
+			@keyframes epicFlash {
+				0% { opacity: 0; }
+				12% { opacity: .75; }
+				28% { opacity: 1; }
+				62% { opacity: .7; }
+				84% { opacity: .28; }
+				100% { opacity: 0; }
+			}
+			@keyframes epicShake {
+				0%, 100% { transform: translateX(0); }
+				18% { transform: translateX(-7px); }
+				36% { transform: translateX(6px); }
+				54% { transform: translateX(-4px); }
+				72% { transform: translateX(3px); }
+			}
+			@media (prefers-reduced-motion: reduce) {
+				.app.epic-shake { animation: none; }
+				.epic-flash.active { animation-duration: .25s; }
+			}
 			.stage-label {
 				position: absolute;
 				left: 22px;
@@ -973,6 +1002,34 @@
 				min-width: 0;
 				flex: 1;
 			}
+			.epic-toggle {
+				display: flex;
+				align-items: center;
+				gap: 5px;
+				color: #8a6b19;
+				font-size: 10px;
+				font-weight: 600;
+				white-space: nowrap;
+				cursor: pointer;
+			}
+			.epic-toggle input {
+				width: 17px;
+				height: 17px;
+				margin: 0;
+				accent-color: #d1a52a;
+			}
+			.item-epic-toggle { flex: none; }
+			.epic-form-toggle {
+				min-height: 44px;
+				margin: -2px 0 0;
+				font-size: 12px;
+			}
+			.epic-note {
+				margin: -2px 0 16px 23px;
+				color: #9a8d68;
+				font-size: 10px;
+				line-height: 1.5;
+			}
 			.item-name {
 				font-family: inherit;
 				font-size: 12px;
@@ -1439,6 +1496,7 @@
 				</section>
 			</main>
 		</div>
+		<div class="epic-flash" id="epicFlash" aria-hidden="true"></div>
 		<button class="settings-fab" id="openSettings" aria-label="상품 설정 열기"><span>⚙</span> 설정</button>
 		<div class="settings-overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
 			<section class="settings-dialog">
@@ -1561,7 +1619,9 @@
 					type="number"
 					min="0"
 					value="10"
-				/><label class="field"
+				/><label class="epic-toggle epic-form-toggle" for="productEpicEffect"><input id="productEpicEffect" type="checkbox"><span>에픽빔 특별 효과</span></label>
+				<p class="epic-note">이 상품이 포함된 뽑기 결과에서 빛과 흔들림 효과가 한 번 재생돼요.</p>
+				<label class="field"
 					>상품 이미지 <span style="color: #aaa">(선택)</span></label
 				><label class="upload" id="uploadLabel" for="imageFile"
 					><span id="uploadContent"
@@ -1636,7 +1696,8 @@
 				busy = false,
 				selectedImage = "",
 				toastTimer,
-				drawAudioContext;
+				drawAudioContext,
+				epicEffectTimer;
 			try {
 				const saved = JSON.parse(localStorage.getItem("gachaStudioProductPresets"));
 				if (saved && typeof saved === "object" && !Array.isArray(saved)) productPresets = saved;
@@ -1832,8 +1893,15 @@
 				products.forEach((p, i) => {
 					const row = document.createElement("div");
 					row.className = "item";
-					row.innerHTML = `<div class="thumb" style="background:${p.image ? "#f2f0e8" : p.color || palette[i % palette.length]}">${p.image ? `<img src="${p.image}" alt="">` : `<span>${p.emoji || "🎁"}</span>`}</div><div class="item-info"><div class="item-name"></div><div class="item-count">남은 재고</div></div><input class="count-input" type="number" min="0" aria-label="재고 수량"><button class="icon-btn" aria-label="상품 삭제">×</button>`;
+					row.innerHTML = `<div class="thumb" style="background:${p.image ? "#f2f0e8" : p.color || palette[i % palette.length]}">${p.image ? `<img src="${p.image}" alt="">` : `<span>${p.emoji || "🎁"}</span>`}</div><div class="item-info"><div class="item-name"></div><div class="item-count">남은 재고</div></div><label class="epic-toggle item-epic-toggle"><input class="epic-effect-input" type="checkbox"><span>에픽빔</span></label><input class="count-input" type="number" min="0" aria-label="재고 수량"><button class="icon-btn" aria-label="상품 삭제">×</button>`;
 					row.querySelector(".item-name").textContent = p.name;
+					const epicInput = row.querySelector(".epic-effect-input");
+					epicInput.checked = Boolean(p.epicEffect);
+					epicInput.setAttribute("aria-label", `${p.name} 에픽빔 효과`);
+					epicInput.addEventListener("change", () => {
+						p.epicEffect = epicInput.checked;
+						saveProducts();
+					});
 					const input = row.querySelector(".count-input");
 					input.value = p.stock;
 					input.addEventListener("change", () => {
@@ -1895,6 +1963,21 @@
 				$("#drawResultMeta").textContent =
 					`총 ${pulled.length}회 · ${counts.size}종류의 상품`;
 				$("#drawResult").classList.add("open");
+			}
+			function playEpicEffect() {
+				const app = $(".app");
+				const flash = $("#epicFlash");
+				clearTimeout(epicEffectTimer);
+				app.classList.remove("epic-shake");
+				flash.classList.remove("active");
+				void app.offsetWidth;
+				void flash.offsetWidth;
+				app.classList.add("epic-shake");
+				flash.classList.add("active");
+				epicEffectTimer = setTimeout(() => {
+					app.classList.remove("epic-shake");
+					flash.classList.remove("active");
+				}, 1700);
 			}
 			function renderHistory() {
 				const host = $("#historyContent");
@@ -2038,6 +2121,7 @@
 						}
 						picked.stock--;
 						pulled.push({ ...picked });
+						if (picked.epicEffect) playEpicEffect();
 						const animatedBall = disp.querySelector(".ball");
 						animatedBall.innerHTML = "";
 						animatedBall.classList.toggle("has-image", Boolean(picked.image));
@@ -2293,6 +2377,7 @@
 				backdrop.classList.remove("open");
 				$("#productName").value = "";
 				$("#productStock").value = 10;
+				$("#productEpicEffect").checked = false;
 				selectedImage = "";
 				$("#uploadContent").textContent =
 					"＋  이미지를 선택하거나 여기에 놓아주세요";
@@ -2377,6 +2462,7 @@
 						: `p-${Date.now()}-${Math.random().toString(36).slice(2)}`,
 					name,
 					stock,
+					epicEffect: $("#productEpicEffect").checked,
 					image: selectedImage,
 					emoji: ["🎁", "🧸", "🌷", "🍀", "🐰"][products.length % 5],
 					color: palette[products.length % palette.length],
